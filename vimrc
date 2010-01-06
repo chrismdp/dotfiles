@@ -1,0 +1,67 @@
+" From http://items.sjbach.com/319/configuring-vim-right
+set nocp
+set hidden
+let mapleader = ","
+let maplocalleader = ","
+set history=1000
+runtime macros/matchit.vim
+set wildmenu
+set wildmode=list:longest
+set ignorecase 
+set smartcase
+set title
+set scrolloff=3
+set backupdir=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
+set directory=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
+
+nnoremap <C-e> 3<C-e>
+nnoremap <C-y> 3<C-y>
+set backspace=indent,eol,start
+ 
+" File-type highlighting and configuration.
+" Run :filetype (without args) to see what you may have
+" to turn on yourself, or just set them all to be sure.
+syntax on
+filetype on
+filetype plugin on
+filetype indent on
+set incsearch
+set shortmess=atI
+set visualbell
+" From http://weblog.jamisbuck.org/2008/11/17/vim-follow-up
+set grepprg=ack
+set grepformat=%f:%l:%m
+set tabstop=2
+set smarttab
+set shiftwidth=2
+set autoindent
+set expandtab
+set backspace=start,indent
+autocmd FileType make     set noexpandtab
+autocmd FileType python   set noexpandtab
+set ruler
+set nonumber
+set hlsearch
+syntax on
+ 	
+map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
+
+let g:fuzzy_ignore = "*.log"
+let g:fuzzy_matching_limit = 70
+
+map <leader>tt :FuzzyFinderTextMate<CR>
+" From http://biodegradablegeek.com/2007/12/using-vim-as-a-complete-ruby-on-rails-ide/
+set cf  " Enable error files & error jumping.
+set clipboard+=unnamed  " Yanks go on clipboard instead.
+set autowrite  " Writes on make/shell commands
+set showmatch
+set laststatus=2
+"My own keybindings
+let twitvim_login = "ChrisMDP:Chr1sMDP1"
+
+map <leader>gd :GitDiff<CR>
+map <leader>gs :GitStatus<CR>
+map <leader>gc :GitCommit<CR>
+map <leader>b :FuzzyFinderBuffer<CR>
+
+map <leader>full :set lines=100 columns=400 fu<CR>
