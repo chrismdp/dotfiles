@@ -1,2 +1,0 @@
-#!/bin/bash
-vim -c "runtime macros/ttcoach/ttcoach.vim" -c ":TTCoach $1"
