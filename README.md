@@ -9,7 +9,8 @@ Don't forget to install all the vim bundle submodules:
 
 Then link up as many files as you want to use...
 <pre>
-  ln -sf path/to/local/dir/vimrc ~/.vimrc
-  ln -sf path/to/local/dir/vim ~/.vim
-  ln -sf path/to/local/dir/gvimrc ~/.gvimrc
+  cd ~
+  ln -sf config_files/vimrc ~/.vimrc
+  ln -sf config_files/vim ~/.vim
+  ln -sf config_files/gvimrc ~/.gvimrc
 </pre>
