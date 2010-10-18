@@ -78,3 +78,9 @@ map <leader>f :set lines=100 columns=400 fu<CR>
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
 
+" Understand :W as :w
+command! W :w
+
+" Show unwanted whitespace
+set listchars=tab:>-,trail:.,extends:>
+set list!
