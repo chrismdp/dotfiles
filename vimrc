@@ -2,11 +2,20 @@ filetype off
 call pathogen#runtime_append_all_bundles()
 syntax on
 filetype plugin indent on
+set modelines=0
+set nocompatible
+
 set tabstop=2
+set softtabstop=2
 set smarttab
 set shiftwidth=2
-set autoindent
 set expandtab
+
+set autoindent
+set encoding=utf-8
+set showmode
+set showcmd
+
 " From http://items.sjbach.com/319/configuring-vim-right
 set hidden
 let mapleader = ","
