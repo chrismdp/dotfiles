@@ -23,17 +23,22 @@ let maplocalleader = ","
 set history=1000
 set wildmenu
 set wildmode=list:longest
-set ignorecase 
+set ignorecase
 set smartcase
 set title
+set ttyfast
+set cursorline
 set scrolloff=3
 set backupdir=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
 set directory=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
 
+nnoremap <tab> %
+vnoremap <tab> %
 nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
+set gdefault
 set backspace=indent,eol,start
- 
+
 " File-type highlighting and configuration.
 " Run :filetype (without args) to see what you may have
 " to turn on yourself, or just set them all to be sure.
@@ -49,13 +54,9 @@ set ruler
 set number
 set hlsearch
 syntax on
- 	
+
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 
-let g:fuzzy_ignore = "*.log"
-let g:fuzzy_matching_limit = 70
-
-map <leader>tt :FuzzyFinderTextMate<CR>
 " From http://biodegradablegeek.com/2007/12/using-vim-as-a-complete-ruby-on-rails-ide/
 set cf  " Enable error files & error jumping.
 set clipboard+=unnamed  " Yanks go on clipboard instead.
@@ -63,10 +64,17 @@ set autowrite  " Writes on make/shell commands
 set showmatch
 set laststatus=2
 
+"Save on losing focus
+au FocusLost * :wa
+
 "My own keybindings
 map <leader>gd :GitDiff<CR>
 map <leader>gs :GitStatus<CR>
 map <leader>gc :GitCommit<CR>
-map <leader>b :FuzzyFinderBuffer<CR>
-
+nnoremap <leader><space> :noh<cr>
+nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>f :set lines=100 columns=400 fu<CR>
+
+" Use .as for ActionScript files, not Atlas files.
+au BufNewFile,BufRead *.as set filetype=actionscript
+
