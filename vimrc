@@ -61,3 +61,6 @@ map <leader>gc :GitCommit<CR>
 map <leader>b :FuzzyFinderBuffer<CR>
 
 map <leader>f :set lines=100 columns=400 fu<CR>
+
+" Understand :W as :w
+command! W :w
