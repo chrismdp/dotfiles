@@ -74,6 +74,7 @@ map <leader>gc :GitCommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>f :set lines=100 columns=400 fu<CR>
+map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
