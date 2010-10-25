@@ -78,6 +78,8 @@ map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
+au BufNewFile,BufRead *.ru set filetype=ruby
+au BufNewFile,BufRead Gemfile set filetype=ruby
 
 " Understand :W as :w
 command! W :w
