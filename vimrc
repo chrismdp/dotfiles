@@ -80,6 +80,7 @@ map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
 au BufNewFile,BufRead *.as set filetype=actionscript
 au BufNewFile,BufRead *.ru set filetype=ruby
 au BufNewFile,BufRead Gemfile set filetype=ruby
+au BufNewFile,BufRead *.md set filetype=mkd
 
 " Understand :W as :w
 command! W :w
@@ -87,3 +88,6 @@ command! W :w
 " Show unwanted whitespace
 set listchars=tab:>-,trail:.,extends:>
 set list!
+
+" Status line
+set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%-40{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \  
