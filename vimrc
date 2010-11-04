@@ -75,6 +75,7 @@ nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>f :set lines=100 columns=400 fu<CR>
 map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
+map <leader>pc :ColorHEX<CR>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
@@ -90,4 +91,4 @@ set listchars=tab:>-,trail:.,extends:>
 set list!
 
 " Status line
-set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%-40{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \  
+set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%-20{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \  
