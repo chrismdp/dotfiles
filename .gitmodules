@@ -43,3 +43,6 @@
 [submodule "vim/bundle/vim-markdown"]
 	path = vim/bundle/vim-markdown
 	url = git://github.com/plasticboy/vim-markdown.git
+[submodule "vim/bundle/vim-ruby-refactoring"]
+	path = vim/bundle/vim-ruby-refactoring
+	url = git://github.com/ecomba/vim-ruby-refactoring.git
