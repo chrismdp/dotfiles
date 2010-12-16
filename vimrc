@@ -65,7 +65,7 @@ set showmatch
 set laststatus=2
 
 "Save on losing focus
-au FocusLost * :wa
+"au FocusLost * :wa
 
 "My own keybindings
 map <leader>gd :GitDiff<CR>
@@ -73,7 +73,7 @@ map <leader>gs :GitStatus<CR>
 map <leader>gc :GitCommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
-map <leader>f :set lines=100 columns=400 fu<CR>
+map <leader>f :set nofu<CR>:set lines=100 columns=400 fu<CR>
 map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
 map <leader>pc :ColorHEX<CR>
 
@@ -87,8 +87,10 @@ au BufNewFile,BufRead *.md set filetype=mkd
 command! W :w
 
 " Show unwanted whitespace
-set listchars=tab:>-,trail:.,extends:>
+set listchars=tab:-✈,trail:,extends:>
 set list!
 
 " Status line
-set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%-20{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \  
+set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \
+colorscheme tir_black
+set t_Co=256
