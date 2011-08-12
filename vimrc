@@ -92,6 +92,9 @@ set list!
 
 " Status line
 set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \
-colorscheme tir_black
+colorscheme ir_black
 set t_Co=256
 map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
+
+" Switch buffer with ,,
+map <leader>, :b#<CR>
