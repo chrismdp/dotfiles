@@ -49,3 +49,6 @@
 [submodule "vim/bundle/vim-scala"]
 	path = vim/bundle/vim-scala
 	url = git://github.com/ewiplayer/vim-scala.git
+[submodule "vim/bundle/scss-syntax"]
+	path = vim/bundle/scss-syntax
+	url = git://github.com/cakebaker/scss-syntax.vim.git
