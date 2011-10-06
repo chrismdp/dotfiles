@@ -74,7 +74,7 @@ map <leader>gc :GitCommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>f :set nofu<CR>:set lines=100 columns=400 fu<CR>
-map <leader>id !!date +'\%Y-\%m-\%d \%T \%z'<CR>
+map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 map <leader>pc :ColorHEX<CR>
 
 " Use .as for ActionScript files, not Atlas files.
