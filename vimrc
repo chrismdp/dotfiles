@@ -87,7 +87,7 @@ au BufNewFile,BufRead *.md set filetype=mkd
 command! W :w
 
 " Show unwanted whitespace
-set listchars=tab:-✈,trail:,extends:>
+set listchars=tab:->,trail:·,extends:>
 set list!
 
 " Status line
