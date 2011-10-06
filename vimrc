@@ -91,7 +91,13 @@ set listchars=tab:->,trail:·,extends:>
 set list!
 
 " Status line
-set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ [b%n]\ %l/%L\ ~\ %p%%\ \
-colorscheme tir_black
-set t_Co=256
+set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
+
+set background=dark
+colorscheme solarized
+set t_Co=16
+"
 map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
+
+"json == javascript
+autocmd BufNewFile,BufRead *.json set ft=javascript
