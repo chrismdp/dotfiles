@@ -1,9 +1,9 @@
-filetype off
+"filetype off
 call pathogen#runtime_append_all_bundles()
 syntax on
 filetype plugin indent on
 set modelines=0
-set nocompatible
+"set nocompatible
 
 set tabstop=2
 set softtabstop=2
@@ -87,7 +87,7 @@ au BufNewFile,BufRead *.md set filetype=mkd
 command! W :w
 
 " Show unwanted whitespace
-set listchars=tab:-✈,trail:,extends:>
+set listchars=tab:-✈,trail:·,extends:>
 set list!
 
 " Status line
