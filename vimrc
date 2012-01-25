@@ -98,3 +98,21 @@ map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
 
 " Switch buffer with ,,
 map <leader>, :b#<CR>
+
+" Disable arrow keys, muahaha!
+inoremap <Left>  <NOP>
+inoremap <Right> <NOP>
+inoremap <Up>    <NOP>
+inoremap <Down>  <NOP>
+nnoremap <Left>  <NOP>
+nnoremap <Right> <NOP>
+nnoremap <Up>    <NOP>
+nnoremap <Down>  <NOP>
+nnoremap j gj
+nnoremap k gk
+
+inoremap jj <ESC>
+
+inoremap <F1> <ESC>
+nnoremap <F1> <ESC>
+vnoremap <F1> <ESC>
