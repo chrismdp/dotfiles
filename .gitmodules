@@ -49,3 +49,12 @@
 [submodule "vim/bundle/command-t"]
 	path = vim/bundle/command-t
 	url = git://git.wincent.com/command-t.git
+[submodule "vim/bundle/c.vim"]
+	path = vim/bundle/c.vim
+	url = https://github.com/vim-scripts/c.vim
+[submodule "vim/bundle/a.vim"]
+	path = vim/bundle/a.vim
+	url = https://github.com/vim-scripts/a.vim.git
+[submodule "vim/bundle/vim-creole"]
+	path = vim/bundle/vim-creole
+	url = https://github.com/vim-scripts/vim-creole

@@ -1,2 +1,2 @@
---type-add=ruby=.haml,.sass,.scss,.rake,.feature,.markdown,.coffee
+--type-add=ruby=.haml,.sass,.scss,.rake,.feature,.markdown,.coffee,.erb
 --type-add=objc=.h,.m
