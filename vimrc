@@ -123,3 +123,4 @@ set wildignore+=*.o,*.obj,.git
 cnoremap %% <C-R>=expand('%:h').'/'<cr>
 map <leader>e :edit %%
 map <leader>v :view %%
+map <leader>wc :!wc %<cr>
