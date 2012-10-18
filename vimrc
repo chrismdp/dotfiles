@@ -110,6 +110,7 @@ autocmd BufNewFile,BufRead *.json set ft=javascript
 " Shaders are 'C' for now
 autocmd BufNewFile,BufRead *.vertexshader set ft=cpp
 autocmd BufNewFile,BufRead *.fragmentshader set ft=cpp
+autocmd BufNewFile,BufRead *.proto set ft=cpp
 " rabl files are ruby
 autocmd BufNewFile,BufRead *.rabl set ft=ruby
 " rcss are css and rml are html
@@ -117,7 +118,7 @@ autocmd BufNewFile,BufRead *.rcss set ft=css
 autocmd BufNewFile,BufRead *.rml set ft=html
 
 " Ignore *.o files in CommandT
-set wildignore+=*.o,*.obj,.git
+set wildignore+=*.o,*.obj,.git,*.mf,*.pb
 
 "%% expands to current path
 cnoremap %% <C-R>=expand('%:h').'/'<cr>
