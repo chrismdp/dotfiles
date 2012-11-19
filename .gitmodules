@@ -58,3 +58,12 @@
 [submodule "vim/bundle/vim-creole"]
 	path = vim/bundle/vim-creole
 	url = https://github.com/vim-scripts/vim-creole
+[submodule "vim/bundle/xmledit"]
+	path = vim/bundle/xmledit
+	url = https://github.com/sukima/xmledit.git
+[submodule "vim/bundle/vim-ragtag"]
+	path = vim/bundle/vim-ragtag
+	url = git://github.com/tpope/vim-ragtag.git
+[submodule "vim/bundle/JavaScript-Indent"]
+	path = vim/bundle/JavaScript-Indent
+	url = git://github.com/vim-scripts/JavaScript-Indent.git

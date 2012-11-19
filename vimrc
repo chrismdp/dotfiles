@@ -78,6 +78,7 @@ map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 map <leader>pc :ColorHEX<CR>
 map <leader>rs :wa\|!rspec %<CR>
 map <leader>rc :wa\|!cucumber %<CR>
+map <leader>rm :wa\|make<CR>
 map <leader>ras :wa\|!rspec spec<CR>
 map <leader>rac :wa\|!cucumber<CR>
 
@@ -97,7 +98,7 @@ set list!
 " Status line
 set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
 
-set background=light
+set background=dark
 colorscheme solarized
 set t_Co=16
 
@@ -125,3 +126,5 @@ cnoremap %% <C-R>=expand('%:h').'/'<cr>
 map <leader>e :edit %%
 map <leader>v :view %%
 map <leader>wc :!wc %<cr>
+
+set shell=/bin/bash

@@ -1,3 +1,4 @@
 --type-add=ruby=.haml,.sass,.scss,.rake,.feature,.markdown,.coffee,.erb
 --type-add=objc=.h,.m
 --type-add=html=.rml,.rcss
+--type-set=puppet=.pp
