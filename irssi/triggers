@@ -1,0 +1,2 @@
+#Triggers file version 1.0
+-all -nocase -channels '#twitter_soltdr' -regexp '(chris)(mdp)' -replace '$1\x02\x02$2' 
