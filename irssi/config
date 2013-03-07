@@ -128,7 +128,12 @@ channels = (
   { name = "#soltrader"; chatnet = "Freenode"; autojoin = "yes"; },
   { name = "#bootstrapd"; chatnet = "Freenode"; autojoin = "yes"; },
   { name = "#vim"; chatnet = "Freenode"; autojoin = "yes"; },
-  { name = "#twitter_soltdr"; chatnet = "Bitlbee"; autojoin = "yes"; }
+  { name = "#twitter_soltdr"; chatnet = "Bitlbee"; autojoin = "yes"; },
+  { name = "#pairzone"; chatnet = "Freenode"; autojoin = "yes"; },
+  { name = "#rstatus"; chatnet = "Freenode"; autojoin = "yes"; },
+  { name = "#whitehall"; chatnet = "Campfire"; autojoin = "yes"; },
+  { name = "#chat"; chatnet = "Campfire"; autojoin = "yes"; },
+  { name = "#zeitgeist"; chatnet = "Campfire"; autojoin = "yes"; }
 );
 
 aliases = {
@@ -179,6 +184,7 @@ aliases = {
   ATAG = "WINDOW SERVER";
   UNSET = "set -clear";
   RESET = "set -default";
+  READ = "script exec \\$_->activity(0) for Irssi::windows";
 };
 
 statusbar = {
@@ -240,7 +246,6 @@ statusbar = {
         window = { };
         window_empty = { };
         lag = { priority = "-1"; };
-        act = { priority = "10"; };
         more = { priority = "-1"; alignment = "right"; };
         barend = { priority = "100"; alignment = "right"; };
       };
@@ -290,6 +295,20 @@ statusbar = {
         topicbarend = { priority = "100"; alignment = "right"; };
       };
     };
+    awl_0 = {
+      items = {
+        barstart = { priority = "100"; };
+        awl_0 = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+    awl_1 = {
+      items = {
+        barstart = { priority = "100"; };
+        awl_1 = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
   };
 };
 settings = {
@@ -300,18 +319,26 @@ settings = {
   };
   "fe-common/core" = {
     theme = "solarized-universal";
-    use_status_window = "no";
+    use_status_window = "yes";
     print_active_channel = "yes";
     hilight_nick_matches = "yes";
     hilight_color = "= %R";
+    autolog = "yes";
   };
   "irc/core" = { alternate_nick = "chrismdp_"; };
   "fe-text" = { actlist_sort = "refnum"; };
   "perl/core/scripts" = {
     openurl_app_http = "open \"$1\"";
     openurl_app_ftp = "open \"$1\"";
+    awl_display_key_active = "%k%2[$Q:$C]$n";
+    awl_display_nokey_active = "%k%2[$N:$C]%n";
+    awl_display_key = "[$Q:$H$C$S]";
+    awl_display_nokey = "[$N:$H$C$S]";
     trackbar_style = "%B";
     openurl_max_urls = "99";
+    awl_block = "10";
+    awl_sbar_maxlength = "no";
+    awl_maxlines = "5";
   };
 };
 keyboard = ( { key = "^R"; id = "command"; data = "history_search "; } );
@@ -361,4 +388,28 @@ ignores = (
   { level = "NOTICES MODES"; channels = ( "&bitlbee" ); },
   { level = "JOINS PARTS QUITS NICKS"; }
 );
-hilights = ( { text = "chrismdp"; nick = "no"; word = "no"; } );
+hilights = (
+  { text = "chrismdp"; color = "%M"; nick = "no"; word = "no"; },
+  {
+    text = "redirector";
+    color = "%G";
+    nick = "yes";
+    word = "yes";
+    channels = ( "#zeitgeist" );
+  },
+  {
+    text = "whitehall";
+    color = "%G";
+    nick = "yes";
+    word = "yes";
+    channels = ( "#zeitgeist" );
+  },
+  {
+    text = "Chris";
+    color = "%M";
+    nick = "yes";
+    word = "yes";
+    channels = ( "#whitehall", "#chat" );
+  }
+);
+logs = { };
