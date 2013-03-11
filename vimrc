@@ -73,14 +73,19 @@ map <leader>gs :GitStatus<CR>
 map <leader>gc :GitCommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
-map <leader>f :set nofu<CR>:set lines=100 columns=400 fu<CR>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 map <leader>pc :ColorHEX<CR>
 map <leader>rs :wa\|!rspec %<CR>
 map <leader>rc :wa\|!cucumber %<CR>
-map <leader>rm :wa\|make<CR>
+map <leader>m :wa\|make<CR>
 map <leader>ras :wa\|!rspec spec<CR>
 map <leader>rac :wa\|!cucumber<CR>
+map <leader>zt :wa\|!zeus test %<CR>
+map <leader>zc :wa\|!zeus cucumber %<CR>
+map <leader>zm :wa\|!zeus r script/rails g migration 
+map <leader>vimrc :tabedit ~/.vimrc<CR>
+map <leader>t :CommandTFlush<CR>:CommandT<CR>
+map <leader>f yaw:grep <C-R>"
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
@@ -119,7 +124,7 @@ autocmd BufNewFile,BufRead *.rcss set ft=css
 autocmd BufNewFile,BufRead *.rml set ft=html
 
 " Ignore *.o files in CommandT
-set wildignore+=*.o,*.obj,.git,*.mf,*.pb
+set wildignore+=*.o,*.obj,.git,*.mf,*.pb,*.pdf,*.jpg,*.gif,*.png
 
 "%% expands to current path
 cnoremap %% <C-R>=expand('%:h').'/'<cr>
@@ -128,3 +133,6 @@ map <leader>v :view %%
 map <leader>wc :!wc %<cr>
 
 set shell=/bin/bash
+
+" use par for formatting
+set formatprg=par
