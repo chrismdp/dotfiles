@@ -84,7 +84,8 @@ map <leader>zt :wa\|!zeus test %<CR>
 map <leader>zc :wa\|!zeus cucumber %<CR>
 map <leader>zm :wa\|!zeus r script/rails g migration 
 map <leader>vimrc :tabedit ~/.vimrc<CR>
-map <leader>t :CommandTFlush<CR>:CommandT<CR>
+map <leader>t :CtrlP
+map <leader>b :CtrlPBuffer
 map <leader>f yaw:grep <C-R>"
 
 " Use .as for ActionScript files, not Atlas files.
