@@ -1,0 +1,23 @@
+[user]
+  name = Chris Parsons
+  email = chris@thinkcodelearn.com
+[color]
+  status = auto
+  diff = auto
+  branch = auto
+  interactive = auto
+[alias]
+  aa = add --all
+  di = diff
+  ci = commit
+  co = checkout
+  st = status
+  dc = diff --cached
+  aadc = !git aa && git dc
+[apply]
+  whitespace = nowarn
+[core]
+  editor = /usr/bin/vim
+  excludesfile = /Users/chris/.gitignore
+[push]
+  default = upstream
