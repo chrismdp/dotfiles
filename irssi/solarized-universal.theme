@@ -135,7 +135,7 @@ abstracts = {
   ##
 
   # the basic styling of how to print message, $0 = nick mode, $1 = nick
-  msgnick = "%_<%_$0$1-%_>%_ %|";
+  msgnick = "%_<%_$0$1-%_>%_ ";
 
   # message from you is printed. "msgownnick" specifies the styling of the
   # nick ($0 part in msgnick) and "ownmsgnick" specifies the styling of the
@@ -276,7 +276,7 @@ abstracts = {
   #dccmsg = "[%G$1-%K(%g$0%K)%n] ";
   dccmsg = "[%g$1-%G($0%G)%n] ";
   dccquerynick = "%g$*%n";
-  dccaction = "%c (*dcc*) $*%n %|";
+  dccaction = "%c (*dcc*) $*%n ";
 
   ##
   ## statusbar
@@ -368,6 +368,6 @@ abstracts = {
 formats = {
   "fe-common/core" = {
     daychange = "           %g-----%w-%W-%n Day changed to %%D %W-%w-%g-----%n";
-    pubmsg = "{pubmsgnick $2 {pubnick \00307$0}}$1";
+    pubmsg = "{pubmsgnick $2 {pubnick \00312$0}}$1";
   };
 };

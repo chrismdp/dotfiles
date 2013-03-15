@@ -113,6 +113,7 @@ chatnets = {
     type = "IRC";
     autosendcmd = "/^msg &bitlbee identify PASSWORD; wait 2000";
   };
+  Campfire = { type = "IRC"; };
 };
 
 channels = (
@@ -309,6 +310,27 @@ statusbar = {
         barend = { priority = "100"; alignment = "right"; };
       };
     };
+    awl_2 = {
+      items = {
+        barstart = { priority = "100"; };
+        awl_2 = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+    awl_3 = {
+      items = {
+        barstart = { priority = "100"; };
+        awl_3 = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+    awl_4 = {
+      items = {
+        barstart = { priority = "100"; };
+        awl_4 = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
   };
 };
 settings = {
@@ -324,9 +346,10 @@ settings = {
     hilight_nick_matches = "yes";
     hilight_color = "= %R";
     autolog = "yes";
+    show_nickmode_empty = "no";
   };
   "irc/core" = { alternate_nick = "chrismdp_"; };
-  "fe-text" = { actlist_sort = "refnum"; };
+  "fe-text" = { actlist_sort = "refnum"; indent = "6"; };
   "perl/core/scripts" = {
     openurl_app_http = "open \"$1\"";
     openurl_app_ftp = "open \"$1\"";
@@ -389,27 +412,13 @@ ignores = (
   { level = "JOINS PARTS QUITS NICKS"; }
 );
 hilights = (
-  { text = "chrismdp"; color = "%M"; nick = "no"; word = "no"; },
-  {
-    text = "redirector";
-    color = "%G";
-    nick = "yes";
-    word = "yes";
-    channels = ( "#zeitgeist" );
-  },
-  {
-    text = "whitehall";
-    color = "%G";
-    nick = "yes";
-    word = "yes";
-    channels = ( "#zeitgeist" );
-  },
   {
     text = "Chris";
     color = "%M";
-    nick = "yes";
-    word = "yes";
-    channels = ( "#whitehall", "#chat" );
-  }
+    nick = "no";
+    word = "no";
+    channels = ( "#whitehall", "#zeitgeist" );
+  },
+  { text = "chrismdp"; color = "%M"; nick = "no"; word = "no"; }
 );
 logs = { };
