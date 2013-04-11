@@ -67,3 +67,9 @@
 [submodule "vim/bundle/ctrlp"]
 	path = vim/bundle/ctrlp
 	url = git://github.com/kien/ctrlp.vim.git
+[submodule "vim/bundle/vim-rake"]
+	path = vim/bundle/vim-rake
+	url = git://github.com/tpope/vim-rake.git
+[submodule "vim/bundle/vim-bundler"]
+	path = vim/bundle/vim-bundler
+	url = git://github.com/tpope/vim-bundler.git
