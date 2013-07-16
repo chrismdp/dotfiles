@@ -1,0 +1,5 @@
+set from      = "chris.p@rsons.org"
+set sendmail  = "/usr/local/bin/msmtp -a personal"
+set postponed = "+Personal/drafts"
+
+macro index,pager A "<save-message>+Personal/archive<enter>" "move message to the archive"

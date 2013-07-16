@@ -1,3 +1,7 @@
 **DS_Store
 *.netrwhist
 *un~
+mutt/cache/*
+mutt/temp/*
+mutt/certificates
+mutt/alias

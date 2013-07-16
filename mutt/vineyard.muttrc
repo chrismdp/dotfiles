@@ -1,0 +1,6 @@
+set from      = "chris@winvin.org.uk"
+set sendmail  = "/usr/local/bin/msmtp -a vineyard"
+set mbox      = "+Vineyard/archive"
+set postponed = "+Vineyard/drafts"
+
+macro index,pager A "<save-message>+Vineyard/archive<enter>" "move message to the archive"

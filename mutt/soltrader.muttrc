@@ -1,0 +1,6 @@
+set from      = "chris@soltrader.net"
+set sendmail  = "/usr/local/bin/msmtp -a soltrader"
+set mbox      = "+SolTrader/archive"
+set postponed = "+SolTrader/drafts"
+
+macro index,pager A "<save-message>+SolTrader/archive<enter>" "move message to the archive"

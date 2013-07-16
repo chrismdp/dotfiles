@@ -1,0 +1,109 @@
+# Sample minimal config file.  Copy this to ~/.offlineimaprc and edit to
+# suit to get started fast.
+
+[general]
+ui = basic
+accounts = Personal,TCL,Vineyard,SolTrader
+pythonfile=~/.mutt/offlineimap.py
+fsync = False
+
+[Account Personal]
+localrepository = Personal-Local
+remoterepository = Personal-Remote
+status_backend = sqlite
+
+[Account TCL]
+localrepository = TCL-Local
+remoterepository = TCL-Remote
+status_backend = sqlite
+
+[Account Vineyard]
+localrepository = Vineyard-Local
+remoterepository = Vineyard-Remote
+status_backend = sqlite
+
+[Account SolTrader]
+localrepository = SolTrader-Local
+remoterepository = SolTrader-Remote
+status_backend = sqlite
+
+[Repository Personal-Local]
+type = Maildir
+localfolders = ~/.mail/Personal
+nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
+                            'bin':     '[Gmail]/Bin',
+                            'archive': '[Gmail]/All Mail',
+                            }.get(folder, folder)
+
+[Repository TCL-Local]
+type = Maildir
+localfolders = ~/.mail/TCL
+nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
+                            'bin':     '[Gmail]/Trash',
+                            'archive': '[Gmail]/All Mail',
+                            }.get(folder, folder)
+
+[Repository Vineyard-Local]
+type = Maildir
+localfolders = ~/.mail/Vineyard
+nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
+                            'bin':     '[Gmail]/Bin',
+                            'archive': '[Gmail]/All Mail',
+                            }.get(folder, folder)
+
+[Repository SolTrader-Local]
+type = Maildir
+localfolders = ~/.mail/SolTrader
+nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
+                            'bin':     '[Gmail]/Trash',
+                            'archive': '[Gmail]/All Mail',
+                            }.get(folder, folder)
+
+[Repository Personal-Remote]
+maxconnections = 2
+type = Gmail
+remoteuser = chris.p@rsons.org
+remotepasseval = get_keychain_pass(account="chris.p@rsons.org", server="imap.gmail.com")
+realdelete = yes
+trashfolder = [Gmail]/Bin
+nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
+                            '[Gmail]/All Mail': 'archive',
+                            '[Gmail]/Bin':       'bin',
+                            }.get(folder, folder)
+
+[Repository TCL-Remote]
+maxconnections = 2
+type = Gmail
+remoteuser = chris@thinkcodelearn.com
+remotepasseval = get_keychain_pass(account="chris@thinkcodelearn.com", server="imap.gmail.com")
+realdelete = yes
+trashfolder = [Gmail]/Bin
+nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
+                            '[Gmail]/All Mail': 'archive',
+                            '[Gmail]/Trash':       'bin',
+                            }.get(folder, folder)
+
+[Repository Vineyard-Remote]
+maxconnections = 2
+type = Gmail
+remoteuser = chris@winvin.org.uk
+remotepasseval = get_keychain_pass(account="chris@winvin.org.uk", server="imap.gmail.com")
+realdelete = yes
+trashfolder = [Gmail]/Bin
+nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
+                            '[Gmail]/Bin':       'bin',
+                            '[Gmail]/All Mail':  'archive',
+                            }.get(folder, folder)
+
+[Repository SolTrader-Remote]
+maxconnections = 2
+type = Gmail
+remoteuser = chris@soltrader.net
+remotepasseval = get_keychain_pass(account="chris@soltrader.net", server="imap.gmail.com")
+realdelete = yes
+trashfolder = [Gmail]/Bin
+nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
+                            '[Gmail]/Starred':   'flagged',
+                            '[Gmail]/Trash':       'bin',
+                            '[Gmail]/All Mail':  'archive',
+                            }.get(folder, folder)
