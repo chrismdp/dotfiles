@@ -104,7 +104,7 @@ set list!
 " Status line
 set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
 
-set background=dark
+set background=light
 colorscheme solarized
 set t_Co=16
 
