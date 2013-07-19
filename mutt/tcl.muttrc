@@ -2,5 +2,7 @@ set from      = "chris@thinkcodelearn.com"
 set sendmail  = "/usr/local/bin/msmtp -a tcl"
 set mbox      = "+TCL/archive"
 set postponed = "+TCL/drafts"
+set trash     = "+TCL/bin"
+set signature = ~/.mutt/tcl.sig
 
 macro index,pager A "<save-message>+TCL/archive<enter>" "move message to the archive"

@@ -2,7 +2,7 @@
 # colours
 source ~/.mutt/mutt-colors-solarized-light-16.muttrc
 
-set editor = "vim '+:8' -c 'set tw=72' -c 'setlocal fo+=aw' -c 'set listchars='"
+set editor = "vim '+/^$' -c 'noh' -c 'set tw=72' -c 'set listchars='"
 
 set folder = ~/.mail
 set alias_file = ~/.mutt/alias
@@ -11,7 +11,6 @@ set message_cachedir = ~/.mutt/cache/bodies  # where to store bodies
 set certificate_file = ~/.mutt/certificates  # where to store certs
 set mailcap_path     = ~/.mutt/mailcap       # entries for filetypes
 set tmpdir           = ~/.mutt/temp          # where to keep temp files
-set signature        = ~/.mutt/personal.sig  # my signature file
 # Basic Options --------------------------------------
 set wait_key = no        # shut up, mutt
 set mbox_type = Maildir  # mailbox type
@@ -28,12 +27,13 @@ set thorough_search      # strip headers and eval mimes before searching
 
 # Sidebar Patch --------------------------------------
 bind index,pager \CP sidebar-prev
-bind index,pager \CN sidebar-next
+bind index,pager \CX sidebar-next
+bind index,pager \CN next-unread-mailbox
 bind index,pager \CO sidebar-open
 set sidebar_delim   = '  │'
 set sidebar_visible = yes
 set sidebar_width   = 30
-color sidebar_new color221 color233
+#color sidebar_new color221 color233
 # Header Options -------------------------------------
 ignore *                                # ignore all headers
 unignore from: to: cc: date: subject:   # show only these
@@ -51,6 +51,7 @@ folder-hook SolTrader/* source ~/.mutt/soltrader.muttrc
 
 mailboxes +Personal/INBOX +TCL/INBOX +Vineyard/INBOX +SolTrader/INBOX
 mailboxes +Personal/archive +TCL/archive +Vineyard/archive +SolTrader/archive
+mailboxes +Personal/bin +TCL/bin +Vineyard/bin +SolTrader/bin
 #mailboxes +Personal/sent +TCL/sent +Vineyard/sent +SolTrader/sent
 mailboxes +temporary/search
 
@@ -74,13 +75,12 @@ macro index \Cr "T~U<enter><tag-prefix><clear-flag>N<untag-pattern>.<enter>" "ma
 
 # Sync email
 macro index O "<shell-escape>offlineimap && notmuch new<enter>"           "run offlineimap to sync all mail and index"
-macro index o "<shell-escape>offlineimap -qf INBOX<enter>" "run offlineimap to sync inbox"
+macro index o "<shell-escape>offlineimap -qf INBOX && notmuch new<enter>" "run offlineimap to sync inbox"
 
 # Saner copy/move dialogs
 macro index C "<copy-message>?<toggle-mailboxes>" "copy a message to a mailbox"
 macro index M "<save-message>?<toggle-mailboxes>" "move a message to a mailbox"
 # Sidebar Navigation ---------------------------------
-bind index,pager \Cx       next-unread-mailbox
 # Pager View Options ---------------------------------
 set pager_index_lines = 10 # number of index lines to show
 set pager_context = 3      # number of context lines to show
