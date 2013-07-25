@@ -31,7 +31,7 @@ bind index,pager \CX sidebar-next
 bind index,pager \CN next-unread-mailbox
 bind index,pager \CO sidebar-open
 set sidebar_delim   = '  │'
-set sidebar_visible = yes
+set sidebar_visible = no
 set sidebar_width   = 30
 #color sidebar_new color221 color233
 # Header Options -------------------------------------
@@ -128,7 +128,7 @@ bind compose p postpone-message
 bind index p recall-message
 
 # Contacts ----
-set query_command = "contacts -Sf '%eTOKEN%n' '%s' | sed -e 's/TOKEN/\t/g'"
+set query_command = "lbdbq '%s'"
 bind editor <Tab> complete-query
 bind editor ^T    complete
 bind index N search-opposite
@@ -137,3 +137,6 @@ bind pager N search-opposite
 macro index S "<enter-command>unset wait_key<enter><shell-escape>mutt-notmuch-py ~/.mail/temporary/search<enter><change-folder-readonly>+temporary/search<enter>" "search mail (using notmuch)"
 
 macro pager V "<view-attachments>/html<enter>" "Jump to HTML attachment in browser"
+
+# Display filter to add aliases ----
+set display_filter = '~/.mutt/display-filter.sh'

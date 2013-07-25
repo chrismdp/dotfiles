@@ -39,6 +39,10 @@ nnoremap <C-y> 3<C-y>
 set gdefault
 set backspace=indent,eol,start
 
+" fix regex handling
+nnoremap / /\v
+vnoremap / /\v
+
 " File-type highlighting and configuration.
 " Run :filetype (without args) to see what you may have
 " to turn on yourself, or just set them all to be sure.
@@ -66,6 +70,7 @@ set laststatus=2
 
 "Save on losing focus
 "au FocusLost * :wa
+map <leader>q gqip<CR>
 
 "My own keybindings
 map <leader>gd :GitDiff<CR>
