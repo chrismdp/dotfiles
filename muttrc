@@ -2,7 +2,7 @@
 # colours
 source ~/.mutt/mutt-colors-solarized-light-16.muttrc
 
-set editor = "vim '+/^$' -c 'noh' -c 'set tw=72' -c 'set listchars='"
+set editor = "vim '+/^$' -c 'noh' -c 'setlocal fo+=aw' -c 'set tw=72' -c 'set listchars='"
 
 set folder = ~/.mail
 set alias_file = ~/.mutt/alias
@@ -48,6 +48,19 @@ folder-hook Personal/* source ~/.mutt/personal.muttrc
 folder-hook TCL/* source ~/.mutt/tcl.muttrc
 folder-hook Vineyard/* source ~/.mutt/vineyard.muttrc
 folder-hook SolTrader/* source ~/.mutt/soltrader.muttrc
+
+macro index,pager gap "<enter-command>source ~/.mutt/personal.muttrc<enter>"
+
+macro index,pager gap "<enter-command>source ~/.mutt/personal.muttrc<enter>"
+macro index,pager gat "<enter-command>source ~/.mutt/tcl.muttrc<enter>"
+macro index,pager gav "<enter-command>source ~/.mutt/vineyard.muttrc<enter>"
+macro index,pager gas "<enter-command>source ~/.mutt/soltrader.muttrc<enter>"
+
+macro index,pager gip "<change-folder>+Personal/INBOX<enter>"
+macro index,pager git "<change-folder>+TCL/INBOX<enter>"
+macro index,pager gis "<change-folder>+SolTrader/INBOX<enter>"
+macro index,pager giv "<change-folder>+Vineyard/INBOX<enter>"
+macro index,pager stw "<enter-command>source ~/.mutt/personal.muttrc<enter>:set saved_editor=$editor<enter>:set editor='true'<enter><forward-message>me@wunderlist.com\n<send-message>:set editor=$saved_editor<enter>A"
 
 mailboxes +Personal/INBOX +TCL/INBOX +Vineyard/INBOX +SolTrader/INBOX
 mailboxes +Personal/archive +TCL/archive +Vineyard/archive +SolTrader/archive
@@ -119,7 +132,7 @@ set reply_to                         # reply to Reply to: field
 set reverse_name                     # reply as whomever it was to
 set include                          # include message in replies
 set forward_quote                    # include message in forwards
-set text_flowed=yes
+set text_flowed
 
 set sendmail_wait = 0
 unset record
@@ -128,15 +141,15 @@ bind compose p postpone-message
 bind index p recall-message
 
 # Contacts ----
-set query_command = "lbdbq '%s'"
+set query_command = 'PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" lbdbq %s'
 bind editor <Tab> complete-query
 bind editor ^T    complete
 bind index N search-opposite
 bind pager N search-opposite
 
-macro index S "<enter-command>unset wait_key<enter><shell-escape>mutt-notmuch-py ~/.mail/temporary/search<enter><change-folder-readonly>+temporary/search<enter>" "search mail (using notmuch)"
+macro index,pager S "<enter-command>unset wait_key<enter><shell-escape>mutt-notmuch-py ~/.mail/temporary/search<enter><change-folder-readonly>+temporary/search<enter>" "search mail (using notmuch)"
 
-macro pager V "<view-attachments>/html<enter>" "Jump to HTML attachment in browser"
+macro pager V "<view-attachments>/html<enter><Return>" "Jump to HTML attachment in browser"
 
 # Display filter to add aliases ----
 set display_filter = '~/.mutt/display-filter.sh'

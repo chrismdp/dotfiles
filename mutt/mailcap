@@ -1,5 +1,7 @@
 # MS Word documents
 application/msword; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
+application/vnd.openxmlformats-officedocument.wordprocessingml.document; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
+
 
 # Images
 image/jpg; ~/.mutt/view_attachment.sh %s jpg
@@ -13,6 +15,7 @@ application/pdf; ~/.mutt/view_attachment.sh %s pdf
 
 # HTML
 text/html; ~/.mutt/view_attachment.sh %s html ; print=~/.mutt/printattach.sh %s
+text/plain; ~/.mutt/view_attachment.sh %s txt
 
 # Unidentified files
 application/octet-stream; ~/.mutt/view_attachment.sh %s "-"

@@ -10,6 +10,7 @@ set softtabstop=2
 set smarttab
 set shiftwidth=2
 set expandtab
+set spelllang=en_gb
 
 set autoindent
 set encoding=utf-8
@@ -70,7 +71,6 @@ set laststatus=2
 
 "Save on losing focus
 "au FocusLost * :wa
-map <leader>q gqip<CR>
 
 "My own keybindings
 map <leader>gd :GitDiff<CR>
@@ -89,6 +89,7 @@ map <leader>zt :wa\|!zeus test %<CR>
 map <leader>zc :wa\|!zeus cucumber %<CR>
 map <leader>zm :wa\|!zeus r script/rails g migration 
 map <leader>vimrc :tabedit ~/.vimrc<CR>
+map <leader>dts :,$-5d<CR>
 map <leader>t :CtrlP<CR>
 map <leader>b :CtrlPBuffer<CR>
 map <leader>f yaw:grep <C-R>"
@@ -141,4 +142,8 @@ map <leader>wc :!wc %<cr>
 set shell=/bin/bash
 
 " use par for formatting
+map <leader>q gqip<CR>
 set formatprg=par
+
+" map gundo
+nnoremap <F5> :GundoToggle<CR>
