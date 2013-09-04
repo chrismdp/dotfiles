@@ -2,6 +2,8 @@
 application/msword; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
 application/vnd.openxmlformats-officedocument.wordprocessingml.document; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
 
+# RTF
+application/rtf; ~/.mutt/view_attachment.sh %s "-"
 
 # Images
 image/jpg; ~/.mutt/view_attachment.sh %s jpg
@@ -19,3 +21,4 @@ text/plain; ~/.mutt/view_attachment.sh %s txt
 
 # Unidentified files
 application/octet-stream; ~/.mutt/view_attachment.sh %s "-"
+
