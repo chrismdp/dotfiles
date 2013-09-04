@@ -1,5 +1,5 @@
 set from      = "chris@thinkcodelearn.com"
-set sendmail  = "/usr/local/bin/msmtp -a tcl"
+set sendmail  = "~/.mutt/text2mime-sendmail.pl -a tcl"
 set mbox      = "+TCL/archive"
 set postponed = "+TCL/drafts"
 set trash     = "+TCL/bin"
