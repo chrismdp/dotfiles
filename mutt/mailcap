@@ -1,24 +1,7 @@
-# MS Word documents
-application/msword; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
-application/vnd.openxmlformats-officedocument.wordprocessingml.document; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
-
-# RTF
-application/rtf; ~/.mutt/view_attachment.sh %s "-"
-
-# Images
-image/jpg; ~/.mutt/view_attachment.sh %s jpg
-image/jpeg; ~/.mutt/view_attachment.sh %s jpg
-image/pjpeg; ~/.mutt/view_attachment.sh %s jpg
-image/png; ~/.mutt/view_attachment.sh %s png
-image/gif; ~/.mutt/view_attachment.sh %s gif
-
-# PDFs
-application/pdf; ~/.mutt/view_attachment.sh %s pdf
-
-# HTML
 text/html; ~/.mutt/view_attachment.sh %s html ; print=~/.mutt/printattach.sh %s
-text/plain; ~/.mutt/view_attachment.sh %s txt
 
-# Unidentified files
-application/octet-stream; ~/.mutt/view_attachment.sh %s "-"
-
+image/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
+audio/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
+video/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
+text/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
+application/*            ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
