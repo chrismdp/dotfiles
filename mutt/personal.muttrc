@@ -1,5 +1,5 @@
 set from      = "chris.p@rsons.org"
-set sendmail  = "~/.mutt/text2mime-sendmail.pl -a personal"
+set sendmail  = "~/.mutt/text2mime-sendmail.rb -a personal"
 set postponed = "+Personal/drafts"
 set trash     = "+Personal/bin"
 set signature = ~/.mutt/personal.sig
