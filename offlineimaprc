@@ -32,6 +32,8 @@ type = Maildir
 localfolders = ~/.mail/Personal
 nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
                             'bin':     '[Gmail]/Bin',
+                            'github':     'github',
+                            'list':     'list',
                             'archive': '[Gmail]/All Mail',
                             }.get(folder, folder)
 
@@ -68,6 +70,8 @@ realdelete = yes
 trashfolder = [Gmail]/Bin
 nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
                             '[Gmail]/All Mail': 'archive',
+                            'github': 'github',
+                            'list': 'list',
                             '[Gmail]/Bin':       'bin',
                             }.get(folder, folder)
 

@@ -61,17 +61,20 @@ macro index,pager gip "<change-folder>+Personal/INBOX<enter>"
 macro index,pager git "<change-folder>+TCL/INBOX<enter>"
 macro index,pager gis "<change-folder>+SolTrader/INBOX<enter>"
 macro index,pager giv "<change-folder>+Vineyard/INBOX<enter>"
-macro index,pager stw "<enter-command>source ~/.mutt/personal.muttrc<enter>:set my_editor=$editor<enter>:set editor='true'<enter><forward-message>me@wunderlist.com\n<send-message>:set editor=$my_editor<enter>A"
 
+macro index,pager gig "<change-folder>+Personal/github<enter>"
+macro index,pager gil "<change-folder>+Personal/list<enter>"
+
+set my_editor=$editor
+macro index,pager stw "<enter-command>source ~/.mutt/personal.muttrc<enter>:set editor='true'<enter><forward-message>me@wunderlist.com\n<send-message>:set editor=$my_editor<enter>A"
 # Markdown HTML emails
-macro compose B ":set my_editor=$editor<enter>:set editor='~/.mutt/text2mime-markdown.rb'<enter>E:set editor=$my_editor<enter>a/tmp/html-markdown-alternative.html<enter>^Du"
-set sendmail=text2mime-sendmail.pl
+macro compose B ":set editor='~/.mutt/text2mime-markdown.rb'<enter>E:set editor=$my_editor<enter>a/tmp/html-markdown-alternative.html<enter>^Du"
 
 mailboxes +Personal/INBOX +TCL/INBOX +Vineyard/INBOX +SolTrader/INBOX
 mailboxes +Personal/archive +TCL/archive +Vineyard/archive +SolTrader/archive
 mailboxes +Personal/bin +TCL/bin +Vineyard/bin +SolTrader/bin
 #mailboxes +Personal/sent +TCL/sent +Vineyard/sent +SolTrader/sent
-mailboxes +temporary/search
+mailboxes +temporary/search +Personal/github +Personal/list
 
 # Index View Options ---------------------------------
 set index_format = "[%Z]  %D  %-20.20F  %s"

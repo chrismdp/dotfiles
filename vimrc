@@ -90,9 +90,26 @@ map <leader>zc :wa\|!zeus cucumber %<CR>
 map <leader>zm :wa\|!zeus r script/rails g migration 
 map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
-map <leader>t :CtrlP<CR>
-map <leader>b :CtrlPBuffer<CR>
 map <leader>f yaw:grep <C-R>"
+
+" Run a given vim command on the results of fuzzy selecting from a given shell
+" command. See usage below.
+function! SelectaCommand(choice_command, vim_command)
+  try
+    silent! exec a:vim_command . " " . system(a:choice_command . " | selecta")
+  catch /Vim:Interrupt/
+    " Swallow the ^C so that the redraw below happens; otherwise there will be
+    " leftovers from selecta on the screen
+  endtry
+  redraw!
+endfunction
+
+" Find all files in all non-dot directories starting in the working directory.
+" Fuzzy select one of those. Open the selected file with :e.
+map <leader>t :call SelectaCommand("find * -type f", ":e")<cr>
+" Find all tags in the tags database, then open the tag that the user selects
+command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", ":tag")
+map <leader>b :SelectaTag<cr>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
