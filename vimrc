@@ -106,7 +106,7 @@ endfunction
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
-map <leader>t :call SelectaCommand("find * -type f", ":e")<cr>
+map <leader>t :call SelectaCommand("find * -type f \| grep -v dist \| grep -v '\.o$'", ":e")<cr>
 " Find all tags in the tags database, then open the tag that the user selects
 command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", ":tag")
 map <leader>b :SelectaTag<cr>
