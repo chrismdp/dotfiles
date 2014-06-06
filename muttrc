@@ -2,7 +2,7 @@
 # colours
 source ~/.mutt/mutt-colors-solarized-light-16.muttrc
 
-set editor = "vim '+/^$' -c 'noh' -c 'setlocal fo+=aw' -c 'set tw=72' -c 'set listchars='"
+set editor = "vim '+/^$' -c 'noh' -c 'set listchars=' -c 'set fo+=w'"
 
 set folder = ~/.mail
 set alias_file = ~/.mutt/alias

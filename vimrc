@@ -94,21 +94,24 @@ map <leader>f yaw:grep <C-R>"
 
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
-function! SelectaCommand(choice_command, vim_command)
+function! SelectaCommand(choice_command, selecta_args, vim_command)
   try
-    silent! exec a:vim_command . " " . system(a:choice_command . " | selecta")
+    silent let selection = system(a:choice_command . " | selecta " . a:selecta_args)
   catch /Vim:Interrupt/
     " Swallow the ^C so that the redraw below happens; otherwise there will be
     " leftovers from selecta on the screen
+    redraw!
+    return
   endtry
   redraw!
+  exec a:vim_command . " " . selection
 endfunction
 
 " Find all files in all non-dot directories starting in the working directory.
 " Fuzzy select one of those. Open the selected file with :e.
-map <leader>t :call SelectaCommand("find * -type f \| grep -v dist \| grep -v '\.o$'", ":e")<cr>
+map <leader>t :call SelectaCommand("find * -type f \| grep -v dist \| grep -v '\.mf$' \| grep -v node_modules \| grep -v '\.o$'", "", "e")<cr>
 " Find all tags in the tags database, then open the tag that the user selects
-command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", ":tag")
+command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", "", "tag")
 map <leader>b :SelectaTag<cr>
 
 " Use .as for ActionScript files, not Atlas files.
@@ -127,7 +130,7 @@ set list!
 " Status line
 set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
 
-set background=light
+set background=dark
 colorscheme solarized
 set t_Co=16
 
@@ -160,7 +163,7 @@ set shell=/bin/bash
 
 " use par for formatting
 map <leader>q gqip<CR>
-set formatprg=par
+"set formatprg=par
 
 " map gundo
 nnoremap <F5> :GundoToggle<CR>
