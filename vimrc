@@ -82,7 +82,6 @@ map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 map <leader>pc :ColorHEX<CR>
 map <leader>rs :wa\|!rspec %<CR>
 map <leader>rc :wa\|!cucumber %<CR>
-map <leader>m :wa\|make<CR>
 map <leader>ras :wa\|!rspec spec<CR>
 map <leader>rac :wa\|!cucumber<CR>
 map <leader>zt :wa\|!zeus test %<CR>
@@ -91,6 +90,8 @@ map <leader>zm :wa\|!zeus r script/rails g migration
 map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
 map <leader>f yaw:grep <C-R>"
+
+map <leader>m :wa\|:cexpr system('rake ' . substitute(expand('%'), '\(\.h\\\|\.cpp\)$', ".o", ""))\|:cw<CR>
 
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
