@@ -1,5 +1,5 @@
 filetype off
-call pathogen#runtime_append_all_bundles()
+execute pathogen#infect()
 syntax on
 filetype plugin indent on
 set modelines=0
@@ -92,6 +92,7 @@ map <leader>dts :,$-5d<CR>
 map <leader>f yaw:grep <C-R>"
 
 map <leader>m :wa\|:cexpr system('rake ' . substitute(expand('%'), '\(\.h\\\|\.cpp\)$', ".o", ""))\|:cw<CR>
+map <leader>dm :wa\|:cexpr system('drake -j8')<CR>
 
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
@@ -168,3 +169,7 @@ map <leader>q gqip<CR>
 
 " map gundo
 nnoremap <F5> :GundoToggle<CR>
+
+" syntastic options for sol
+let g:syntastic_cpp_check_header = 1
+let g:syntastic_cpp_compiler_options = '-I. -Itest -Isrc -DBOOST_THREAD_USE_LIB -DCURL_STATICLIB -DGLEW_STATIC -DNDEBUG -g -Ilib/include -Idist/build/include/ -Wall -Werror -D_GNU_SOURCE=1 -D_THREAD_SAFE -Idist/build/include/freetype2 -Idist/build/osx/include -Idist/build/osx/include/SDL -mmacosx-version-min=10.6 -Fdist/build/osx/frameworks/ -Idist/build/include/boost -include src/Common.h'

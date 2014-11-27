@@ -11,21 +11,25 @@ fsync = False
 localrepository = Personal-Local
 remoterepository = Personal-Remote
 status_backend = sqlite
+postsynchook = /Users/chris/bin/postsynchook
 
 [Account TCL]
 localrepository = TCL-Local
 remoterepository = TCL-Remote
 status_backend = sqlite
+postsynchook = /Users/chris/bin/postsynchook
 
 [Account Vineyard]
 localrepository = Vineyard-Local
 remoterepository = Vineyard-Remote
 status_backend = sqlite
+postsynchook = /Users/chris/bin/postsynchook
 
 [Account SolTrader]
 localrepository = SolTrader-Local
 remoterepository = SolTrader-Remote
 status_backend = sqlite
+postsynchook = /Users/chris/bin/postsynchook
 
 [Repository Personal-Local]
 type = Maildir
