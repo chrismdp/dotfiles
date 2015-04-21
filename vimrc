@@ -1,6 +1,10 @@
-filetype off
+"filetype off
 execute pathogen#infect()
 syntax on
+
+set background=dark
+colorscheme solarized
+
 filetype plugin indent on
 set modelines=0
 set nocompatible
@@ -40,9 +44,9 @@ nnoremap <C-y> 3<C-y>
 set gdefault
 set backspace=indent,eol,start
 
-" fix regex handling
-nnoremap / /\v
-vnoremap / /\v
+"" fix regex handling
+"nnoremap / /\v
+"vnoremap / /\v
 
 " File-type highlighting and configuration.
 " Run :filetype (without args) to see what you may have
@@ -79,20 +83,17 @@ map <leader>gc :GitCommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
-map <leader>pc :ColorHEX<CR>
-map <leader>rs :wa\|!rspec %<CR>
-map <leader>rc :wa\|!cucumber %<CR>
-map <leader>ras :wa\|!rspec spec<CR>
-map <leader>rac :wa\|!cucumber<CR>
-map <leader>zt :wa\|!zeus test %<CR>
-map <leader>zc :wa\|!zeus cucumber %<CR>
-map <leader>zm :wa\|!zeus r script/rails g migration 
+"map <leader>pc :ColorHEX<CR>
+"map <leader>rs :wa\|!rspec %<CR>
+"map <leader>rc :wa\|!cucumber %<CR>
+"map <leader>ras :wa\|!rspec spec<CR>
+"map <leader>rac :wa\|!cucumber<CR>
+"map <leader>zt :wa\|!zeus test %<CR>
+"map <leader>zc :wa\|!zeus cucumber %<CR>
+"map <leader>zm :wa\|!zeus r script/rails g migration
 map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
 map <leader>f yaw:grep <C-R>"
-
-map <leader>m :wa\|:cexpr system('rake ' . substitute(expand('%'), '\(\.h\\\|\.cpp\)$', ".o", ""))\|:cw<CR>
-map <leader>dm :wa\|:cexpr system('drake -j8')<CR>
 
 " Run a given vim command on the results of fuzzy selecting from a given shell
 " command. See usage below.
@@ -132,12 +133,8 @@ set list!
 " Status line
 set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
 
-set background=dark
-colorscheme solarized
-set t_Co=16
-
-"Convert hashes to ruby 1.9
-map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
+""Convert hashes to ruby 1.9
+"map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
 
 "json == javascript
 autocmd BufNewFile,BufRead *.json set ft=javascript
@@ -170,6 +167,8 @@ map <leader>q gqip<CR>
 " map gundo
 nnoremap <F5> :GundoToggle<CR>
 
-" syntastic options for sol
-let g:syntastic_cpp_check_header = 1
-let g:syntastic_cpp_compiler_options = '-I. -Itest -Isrc -DBOOST_THREAD_USE_LIB -DCURL_STATICLIB -DGLEW_STATIC -DNDEBUG -g -Ilib/include -Idist/build/include/ -Wall -Werror -D_GNU_SOURCE=1 -D_THREAD_SAFE -Idist/build/include/freetype2 -Idist/build/osx/include -Idist/build/osx/include/SDL -mmacosx-version-min=10.6 -Fdist/build/osx/frameworks/ -Idist/build/include/boost -include src/Common.h'
+"" syntastic options for sol
+"let g:syntastic_cpp_checkers = []
+"let g:syntastic_cpp_check_header = 0
+"let g:syntastic_ignore_files = ['\m\cUnity.cpp']
+"let g:syntastic_cpp_compiler_options = '-I. -Itest -Isrc -DBOOST_THREAD_USE_LIB -DCURL_STATICLIB -DGLEW_STATIC -DNDEBUG -g -Ilib/include -Idist/build/include/ -Wall -Werror -D_GNU_SOURCE=1 -D_THREAD_SAFE -Idist/build/include/freetype2 -Idist/build/osx/include -Idist/build/osx/include/SDL -mmacosx-version-min=10.6 -Fdist/build/osx/frameworks/ -Idist/build/include/boost -include src/Common.h'

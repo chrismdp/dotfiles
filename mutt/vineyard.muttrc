@@ -1,5 +1,5 @@
 set from      = "chris@winvin.org.uk"
-set sendmail  = "~/.mutt/text2mime-sendmail.rb -a vineyard"
+set sendmail  = "/usr/local/bin/msmtpq -a vineyard"
 set mbox      = "+Vineyard/archive"
 set postponed = "+Vineyard/drafts"
 set trash     = "+Vineyard/bin"

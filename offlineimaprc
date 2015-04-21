@@ -70,6 +70,7 @@ maxconnections = 2
 type = Gmail
 remoteuser = chris.p@rsons.org
 remotepasseval = get_keychain_pass(account="chris.p@rsons.org", server="imap.gmail.com")
+sslcacertfile=/usr/local/etc/openssl/certs/ca-bundle.crt
 realdelete = yes
 trashfolder = [Gmail]/Bin
 nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
@@ -84,6 +85,7 @@ maxconnections = 2
 type = Gmail
 remoteuser = chris@thinkcodelearn.com
 remotepasseval = get_keychain_pass(account="chris@thinkcodelearn.com", server="imap.gmail.com")
+sslcacertfile=/usr/local/etc/openssl/certs/ca-bundle.crt
 realdelete = yes
 trashfolder = [Gmail]/Bin
 nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
@@ -96,6 +98,7 @@ maxconnections = 2
 type = Gmail
 remoteuser = chris@winvin.org.uk
 remotepasseval = get_keychain_pass(account="chris@winvin.org.uk", server="imap.gmail.com")
+sslcacertfile=/usr/local/etc/openssl/certs/ca-bundle.crt
 realdelete = yes
 trashfolder = [Gmail]/Bin
 nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
@@ -109,6 +112,7 @@ type = Gmail
 remoteuser = chris@soltrader.net
 remotepasseval = get_keychain_pass(account="chris@soltrader.net", server="imap.gmail.com")
 realdelete = yes
+sslcacertfile=/usr/local/etc/openssl/certs/ca-bundle.crt
 trashfolder = [Gmail]/Bin
 nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
                             '[Gmail]/Starred':   'flagged',

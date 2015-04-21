@@ -1,7 +1,9 @@
-text/html; ~/.mutt/view_attachment.sh %s html ; print=~/.mutt/printattach.sh %s
+text/html;                      links %s; nametemplate=%s.html; print=~/.mutt/view_attachment.sh %s html
+text/html;                      links -dump %s; nametemplate=%s.html; copiousoutput
 
 image/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
 audio/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
 video/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
 text/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
 application/*            ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
+

@@ -1,6 +1,6 @@
 # A basic .muttrc for use with Gmail
 # colours
-source ~/.mutt/mutt-colors-solarized-light-16.muttrc
+source ~/.mutt/mutt-colors-solarized/mutt-colors-solarized-dark-16.muttrc
 
 set editor = "vim '+/^$' -c 'noh' -c 'set listchars=' -c 'set fo+=w'"
 
@@ -11,6 +11,8 @@ set message_cachedir = ~/.mutt/cache/bodies  # where to store bodies
 set certificate_file = ~/.mutt/certificates  # where to store certs
 set mailcap_path     = ~/.mutt/mailcap       # entries for filetypes
 set tmpdir           = ~/.mutt/temp          # where to keep temp files
+auto_view text/html
+
 # Basic Options --------------------------------------
 set wait_key = no        # shut up, mutt
 set mbox_type = Maildir  # mailbox type
@@ -26,15 +28,16 @@ set pipe_decode          # strip headers and eval mimes when piping
 set thorough_search      # strip headers and eval mimes before searching
 set sleep_time=0
 
-# Sidebar Patch --------------------------------------
-bind index,pager \CP sidebar-prev
-bind index,pager \CX sidebar-next
-bind index,pager \CN next-unread-mailbox
-bind index,pager \CO sidebar-open
-set sidebar_delim   = '  │'
-set sidebar_visible = no
-set sidebar_width   = 30
+##Sidebar Patch --------------------------------------
+#bind index,pager \CP sidebar-prev
+#bind index,pager \CX sidebar-next
+#bind index,pager \CN next-unread-mailbox
+#bind index,pager \CO sidebar-open
+#set sidebar_delim   = '  │'
+#set sidebar_visible = no
+#set sidebar_width   = 30
 #color sidebar_new color221 color233
+
 # Header Options -------------------------------------
 ignore *                                # ignore all headers
 unignore from: to: cc: date: subject:   # show only these
@@ -77,7 +80,8 @@ mailboxes +Personal/bin +TCL/bin +Vineyard/bin +SolTrader/bin
 mailboxes +temporary/search +Personal/github +Personal/list
 
 # Index View Options ---------------------------------
-set index_format = "[%Z]  %D  %-20.20F  %s"
+set index_format = "%Z|%D|%-15.15F|%s"
+set date_format = "%I%p %Z|%a %d %b %y"
 set sort = threads                         # like gmail
 set sort_aux = reverse-last-date-received  # like gmail
 set uncollapse_jump                        # don't collapse on an unread message
@@ -142,7 +146,6 @@ set include                          # include message in replies
 set forward_quote                    # include message in forwards
 set text_flowed
 
-set sendmail_wait = 0
 unset record
 
 bind compose p postpone-message

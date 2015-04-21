@@ -1,5 +1,5 @@
 set from      = "chris@soltrader.net"
-set sendmail  = "~/.mutt/text2mime-sendmail.rb -a soltrader"
+set sendmail  = "/usr/local/bin/msmtpq -a soltrader"
 set mbox      = "+SolTrader/archive"
 set postponed = "+SolTrader/drafts"
 set trash     = "+SolTrader/bin"
