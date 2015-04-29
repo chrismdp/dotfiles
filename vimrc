@@ -4,6 +4,8 @@ syntax on
 
 set background=dark
 colorscheme solarized
+let g:solarized_termtrans=1
+call togglebg#map("<F6>")
 
 filetype plugin indent on
 set modelines=0
@@ -32,7 +34,7 @@ set ignorecase
 set smartcase
 set title
 set ttyfast
-set cursorline
+"set cursorline
 set scrolloff=3
 set backupdir=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
 set directory=~/.vim/backups,~/.tmp,~/tmp,/var/tmp,/tmp
@@ -71,7 +73,7 @@ set cf  " Enable error files & error jumping.
 set clipboard+=unnamed  " Yanks go on clipboard instead.
 set autowrite  " Writes on make/shell commands
 set showmatch
-set laststatus=2
+set laststatus=1
 
 "Save on losing focus
 "au FocusLost * :wa
