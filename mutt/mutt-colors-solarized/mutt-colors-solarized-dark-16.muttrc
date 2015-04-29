@@ -7,7 +7,7 @@
 
 # custom body highlights -----------------------------------------------
 # highlight my name and other personally relevant strings
-#color body          yellow          default         "(ethan|schoonover)"
+color body          yellow          default         "(chris|parsons)"
 # custom index highlights ----------------------------------------------
 # messages which mention my name in the body
 #color index         yellow          default         "~b \"phil(_g|\!| gregory| gold)|pgregory\" !~N !~T !~F !~p !~P"
