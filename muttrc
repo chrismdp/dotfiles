@@ -2,6 +2,9 @@
 # colours
 source ~/.mutt/mutt-colors-solarized/mutt-colors-solarized-dark-16.muttrc
 
+set sendmail_wait = -1
+unset help
+
 set editor = "vim '+/^$' -c 'noh' -c 'set listchars=' -c 'set fo+=w'"
 
 set folder = ~/.mail
@@ -80,8 +83,8 @@ mailboxes +Personal/bin +TCL/bin +Vineyard/bin +SolTrader/bin
 mailboxes +temporary/search +Personal/github +Personal/list
 
 # Index View Options ---------------------------------
-set index_format = "%Z|%D|%-15.15F|%s"
-set date_format = "%I%p %Z|%a %d %b %y"
+set index_format = "%Z %[%l%p %a %d %b %y] | %-15.15F | %s"
+set date_format = "%a %d %b %Y at %I:%M%p %Z"
 set sort = threads                         # like gmail
 set sort_aux = reverse-last-date-received  # like gmail
 set uncollapse_jump                        # don't collapse on an unread message
