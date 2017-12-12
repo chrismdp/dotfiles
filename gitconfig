@@ -1,6 +1,6 @@
 [user]
-  name = Chris Parsons
-  email = chris@thinkcodelearn.com
+	name = Chris Parsons
+	email = cp@gower.st
 [color]
   status = auto
   diff = auto
@@ -21,3 +21,12 @@
   excludesfile = /Users/chris/.gitignore
 [push]
   default = upstream
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[gpg]
+	program = gpg2
+[credential]
+	helper = osxkeychain

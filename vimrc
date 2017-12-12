@@ -152,7 +152,7 @@ autocmd BufNewFile,BufRead *.rcss set ft=css
 autocmd BufNewFile,BufRead *.rml set ft=html
 
 " Ignore *.o files in CommandT
-set wildignore+=*.o,*.obj,.git,*.mf,*.pb,*.pdf,*.jpg,*.gif,*.png
+set wildignore+=*.o,*.obj,.git,*.mf,*.pb,*.pdf,*.jpg,*.gif,*.png,*/public/js/*
 
 "%% expands to current path
 cnoremap %% <C-R>=expand('%:h').'/'<cr>
@@ -170,7 +170,7 @@ map <leader>q gqip<CR>
 nnoremap <F5> :GundoToggle<CR>
 
 "" syntastic options for sol
-"let g:syntastic_cpp_checkers = []
+let g:syntastic_cpp_checkers = []
 "let g:syntastic_cpp_check_header = 0
 "let g:syntastic_ignore_files = ['\m\cUnity.cpp']
 "let g:syntastic_cpp_compiler_options = '-I. -Itest -Isrc -DBOOST_THREAD_USE_LIB -DCURL_STATICLIB -DGLEW_STATIC -DNDEBUG -g -Ilib/include -Idist/build/include/ -Wall -Werror -D_GNU_SOURCE=1 -D_THREAD_SAFE -Idist/build/include/freetype2 -Idist/build/osx/include -Idist/build/osx/include/SDL -mmacosx-version-min=10.6 -Fdist/build/osx/frameworks/ -Idist/build/include/boost -include src/Common.h'
