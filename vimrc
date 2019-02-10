@@ -3,7 +3,7 @@ execute pathogen#infect()
 syntax on
 
 set background=dark
-colorscheme solarized
+colorscheme base16-default-dark
 let g:solarized_termtrans=1
 call togglebg#map("<F6>")
 
