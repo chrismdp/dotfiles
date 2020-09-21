@@ -10,12 +10,10 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 call plug#begin()
   Plug 'sheerun/vim-polyglot'
-  Plug 'jparise/vim-graphql'
-  Plug 'pangloss/vim-javascript'
+  Plug 'yuezk/vim-js'
   Plug 'tpope/vim-surround'
   Plug 'tpope/vim-abolish'
   Plug 'tpope/vim-fugitive'
-  Plug 'tpope/vim-repeat'
   Plug 'tpope/vim-repeat'
   Plug 'tpope/vim-ragtag'
   Plug 'tpope/vim-commentary'
@@ -23,19 +21,23 @@ call plug#begin()
   Plug 'preservim/nerdtree'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
-  Plug 'vim-syntastic/syntastic'
+  " Plug 'vim-syntastic/syntastic'
   Plug 'mbbill/undotree'
   Plug 'itchyny/lightline.vim'
-  Plug 'phanviet/vim-monokai-pro'
+  Plug 'morhetz/gruvbox'
   Plug 'edkolev/tmuxline.vim'
+  Plug 'shinchu/lightline-gruvbox.vim'
 call plug#end()
 
-let g:tmuxline_preset = 'full'
-autocmd VimEnter * Tmuxline lightline
+if exists('$TMUX')
+  let g:tmuxline_preset = 'full'
+  autocmd VimEnter * Tmuxline lightline
+endif
 
 set background=dark
-colorscheme dim
-let g:lightline = { 'colorscheme': 'default', }
+colorscheme gruvbox
+let g:lightline = {}
+let g:lightline.colorscheme = 'gruvbox'
 
 filetype plugin indent on
 "set modelines=0
