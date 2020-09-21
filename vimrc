@@ -2,6 +2,17 @@
 execute pathogen#infect()
 syntax on
 
+" vim-plug
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+call plug#begin()
+  Plug 'jparise/vim-graphql'
+  Plug 'pangloss/vim-javascript'
+call plug#end()
+
 set background=dark
 colorscheme base16-default-dark
 let g:solarized_termtrans=1
@@ -118,6 +129,8 @@ map <leader>t :call SelectaCommand("find * -type f \| grep -v dist \| grep -v '\
 " Find all tags in the tags database, then open the tag that the user selects
 command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", "", "tag")
 map <leader>b :SelectaTag<cr>
+" CtrlP option
+let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
@@ -150,6 +163,7 @@ autocmd BufNewFile,BufRead *.rabl set ft=ruby
 " rcss are css and rml are html
 autocmd BufNewFile,BufRead *.rcss set ft=css
 autocmd BufNewFile,BufRead *.rml set ft=html
+autocmd BufNewFile,BufRead *.sibilant set ft=clojure
 
 " Ignore *.o files in CommandT
 set wildignore+=*.o,*.obj,.git,*.mf,*.pb,*.pdf,*.jpg,*.gif,*.png,*/public/js/*
