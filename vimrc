@@ -27,15 +27,19 @@ call plug#begin()
   Plug 'mbbill/undotree'
   Plug 'itchyny/lightline.vim'
   Plug 'phanviet/vim-monokai-pro'
+  Plug 'edkolev/tmuxline.vim'
 call plug#end()
+
+let g:tmuxline_preset = 'full'
+autocmd VimEnter * Tmuxline lightline
 
 set background=dark
 colorscheme dim
 let g:lightline = { 'colorscheme': 'default', }
+
 filetype plugin indent on
 "set modelines=0
 set nocompatible
-set noshowmode " We have a statusline that does this
 
 set tabstop=2
 set softtabstop=2
@@ -46,7 +50,8 @@ set spelllang=en_gb
 
 set autoindent
 set encoding=utf-8
-set showmode
+" We have a statusline that does this
+set noshowmode
 set showcmd
 
 " From http://items.sjbach.com/319/configuring-vim-right
