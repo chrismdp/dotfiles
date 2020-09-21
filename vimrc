@@ -9,18 +9,33 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 call plug#begin()
+  Plug 'sheerun/vim-polyglot'
   Plug 'jparise/vim-graphql'
   Plug 'pangloss/vim-javascript'
+  Plug 'tpope/vim-surround'
+  Plug 'tpope/vim-abolish'
+  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-repeat'
+  Plug 'tpope/vim-repeat'
+  Plug 'tpope/vim-ragtag'
+  Plug 'tpope/vim-commentary'
+  Plug 'itchyny/lightline.vim'
+  Plug 'preservim/nerdtree'
+  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+  Plug 'junegunn/fzf.vim'
+  Plug 'vim-syntastic/syntastic'
+  Plug 'mbbill/undotree'
+  Plug 'itchyny/lightline.vim'
+  Plug 'phanviet/vim-monokai-pro'
 call plug#end()
 
 set background=dark
-colorscheme base16-default-dark
-let g:solarized_termtrans=1
-call togglebg#map("<F6>")
-
+colorscheme dim
+let g:lightline = { 'colorscheme': 'default', }
 filetype plugin indent on
-set modelines=0
+"set modelines=0
 set nocompatible
+set noshowmode " We have a statusline that does this
 
 set tabstop=2
 set softtabstop=2
@@ -67,9 +82,6 @@ set backspace=indent,eol,start
 set incsearch
 set shortmess=atI
 set visualbell
-" From http://weblog.jamisbuck.org/2008/11/17/vim-follow-up
-set grepprg=ack
-set grepformat=%f:%l:%m
 autocmd FileType make     set noexpandtab
 autocmd FileType python   set noexpandtab
 set ruler
@@ -84,15 +96,15 @@ set cf  " Enable error files & error jumping.
 set clipboard+=unnamed  " Yanks go on clipboard instead.
 set autowrite  " Writes on make/shell commands
 set showmatch
-set laststatus=1
+set laststatus=2
 
 "Save on losing focus
 "au FocusLost * :wa
 
 "My own keybindings
-map <leader>gd :GitDiff<CR>
-map <leader>gs :GitStatus<CR>
-map <leader>gc :GitCommit<CR>
+map <leader>gd :Gdiff<CR>
+map <leader>gs :Gstatus<CR>
+map <leader>gc :Gcommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
@@ -108,29 +120,8 @@ map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
 map <leader>f yaw:grep <C-R>"
 
-" Run a given vim command on the results of fuzzy selecting from a given shell
-" command. See usage below.
-function! SelectaCommand(choice_command, selecta_args, vim_command)
-  try
-    silent let selection = system(a:choice_command . " | selecta " . a:selecta_args)
-  catch /Vim:Interrupt/
-    " Swallow the ^C so that the redraw below happens; otherwise there will be
-    " leftovers from selecta on the screen
-    redraw!
-    return
-  endtry
-  redraw!
-  exec a:vim_command . " " . selection
-endfunction
-
-" Find all files in all non-dot directories starting in the working directory.
-" Fuzzy select one of those. Open the selected file with :e.
-map <leader>t :call SelectaCommand("find * -type f \| grep -v dist \| grep -v '\.mf$' \| grep -v node_modules \| grep -v '\\.o$'", "", "e")<cr>
-" Find all tags in the tags database, then open the tag that the user selects
-command! SelectaTag :call SelectaCommand("awk '{print $1}' tags | sort -u | grep -v '^!'", "", "tag")
-map <leader>b :SelectaTag<cr>
-" CtrlP option
-let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+map <leader>t :Files<cr>
+map <leader>b :Buffers<cr>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
@@ -152,7 +143,7 @@ set statusline=%f\ %(%m%r%h\ %)%([%Y]%)%=%<%-20{getcwd()}\ %l/%L\ ~\ %p%%\ \
 "map <leader>H :%s/:\(\w\+\) =>/\1:<CR>``
 
 "json == javascript
-autocmd BufNewFile,BufRead *.json set ft=javascript
+"autocmd BufNewFile,BufRead *.json set ft=javascript
 "
 " Shaders are 'C' for now
 autocmd BufNewFile,BufRead *.vertexshader set ft=cpp
@@ -180,11 +171,8 @@ set shell=/bin/bash
 map <leader>q gqip<CR>
 "set formatprg=par
 
-" map gundo
-nnoremap <F5> :GundoToggle<CR>
+" map 
+nnoremap <F5> :UndotreeToggle<CR>
 
 "" syntastic options for sol
 let g:syntastic_cpp_checkers = []
-"let g:syntastic_cpp_check_header = 0
-"let g:syntastic_ignore_files = ['\m\cUnity.cpp']
-"let g:syntastic_cpp_compiler_options = '-I. -Itest -Isrc -DBOOST_THREAD_USE_LIB -DCURL_STATICLIB -DGLEW_STATIC -DNDEBUG -g -Ilib/include -Idist/build/include/ -Wall -Werror -D_GNU_SOURCE=1 -D_THREAD_SAFE -Idist/build/include/freetype2 -Idist/build/osx/include -Idist/build/osx/include/SDL -mmacosx-version-min=10.6 -Fdist/build/osx/frameworks/ -Idist/build/include/boost -include src/Common.h'
