@@ -1,6 +1,8 @@
 "filetype off
-execute pathogen#infect()
 syntax on
+
+let g:javascript_plugin_flow = 1
+let g:polyglot_disabled = ['jsx']
 
 " vim-plug
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -8,15 +10,24 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
+
 call plug#begin()
+  Plug 'chemzqm/vim-jsx-improve'
   Plug 'sheerun/vim-polyglot'
-  Plug 'yuezk/vim-js'
   Plug 'tpope/vim-surround'
   Plug 'tpope/vim-abolish'
   Plug 'tpope/vim-fugitive'
   Plug 'tpope/vim-repeat'
   Plug 'tpope/vim-ragtag'
   Plug 'tpope/vim-commentary'
+
+  Plug 'tpope/vim-rails'
+  Plug 'tpope/vim-bundler'
+  Plug 'tpope/vim-dispatch'
+  Plug 'thoughtbot/vim-rspec'
+
+  Plug 'knsh14/vim-github-link'
+
   Plug 'itchyny/lightline.vim'
   Plug 'preservim/nerdtree'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -97,6 +108,8 @@ set hlsearch
 syntax on
 
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
+map <C-P> :Files<CR>
+map <C-G> :Rg<CR>
 
 " From http://biodegradablegeek.com/2007/12/using-vim-as-a-complete-ruby-on-rails-ide/
 set cf  " Enable error files & error jumping.
@@ -114,6 +127,7 @@ map <leader>gs :Gstatus<CR>
 map <leader>gc :Gcommit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
+nnoremap <leader>r :.w !bash<cr>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 "map <leader>pc :ColorHEX<CR>
 "map <leader>rs :wa\|!rspec %<CR>
@@ -125,10 +139,10 @@ map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 "map <leader>zm :wa\|!zeus r script/rails g migration
 map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
-map <leader>f yaw:grep <C-R>"
+map <leader>f yaw:Rg <C-R>"<CR>
 
 map <leader>t :Files<cr>
-map <leader>b :Buffers<cr>
+map <leader>b :Tags<cr>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
