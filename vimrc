@@ -110,6 +110,17 @@ syntax on
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 map <C-P> :Files<CR>
 map <C-G> :Rg<CR>
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case
+  \ -g "*.{js,json,php,md,styl,jade,html,config,py,cpp,c,go,hs,rb,conf,tf,rake,haml,erb,sass}"
+  \ -g "!*.{min.js,swp,o,zip,tfstate}"
+  \ -g "!**app/assets/javascripts/**/*js"
+  \ -g "!{.git,node_modules,vendor}/*"
+  \ -- '.shellescape(<q-args>), 1,
+  \   fzf#vim#with_preview(), <bang>0)
+let g:fzf_preview_window = ['right:50%', 'ctrl-/']
+map <leader>gl :Commits<CR>
 
 " From http://biodegradablegeek.com/2007/12/using-vim-as-a-complete-ruby-on-rails-ide/
 set cf  " Enable error files & error jumping.
@@ -122,13 +133,19 @@ set laststatus=2
 "au FocusLost * :wa
 
 "My own keybindings
-map <leader>gd :Gdiff<CR>
-map <leader>gs :Gstatus<CR>
-map <leader>gc :Gcommit<CR>
+map <leader>gd :Git diff<CR>
+map <leader>gs :Git status<CR>
+map <leader>gc :Git commit<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>W :%s/\s\+$//<cr>:let @/=''<CR>
 nnoremap <leader>r :.w !bash<cr>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
+" map <leader>rs :Dispatch rspec %<CR>
+" map <leader>ra :Dispatch rspec<CR>
+let g:rspec_command = "Dispatch rspec {spec}"
+map <leader>rf :call RunCurrentSpecFile()<CR>
+map <leader>rs :call RunNearestSpec()<CR>
+map <leader>ra :call RunAllSpecs()<CR>
 "map <leader>pc :ColorHEX<CR>
 "map <leader>rs :wa\|!rspec %<CR>
 "map <leader>rc :wa\|!cucumber %<CR>
@@ -141,8 +158,8 @@ map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
 map <leader>f yaw:Rg <C-R>"<CR>
 
-map <leader>t :Files<cr>
-map <leader>b :Tags<cr>
+map <leader>t :Tags<cr>
+map <leader>b :Buffers<cr>
 
 " Use .as for ActionScript files, not Atlas files.
 au BufNewFile,BufRead *.as set filetype=actionscript
@@ -192,7 +209,7 @@ set shell=/bin/bash
 map <leader>q gqip<CR>
 "set formatprg=par
 
-" map 
+" map
 nnoremap <F5> :UndotreeToggle<CR>
 
 "" syntastic options for sol
