@@ -113,7 +113,7 @@ map <C-G> :Rg<CR>
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
   \   'rg --column --line-number --no-heading --color=always --smart-case
-  \ -g "*.{js,json,php,md,styl,jade,html,config,py,cpp,c,go,hs,rb,conf,tf,rake,haml,erb,sass}"
+  \ -g "*.{js,json,php,md,styl,jade,html,config,py,cpp,c,go,hs,rb,conf,tf,rake,*haml,*erb,sass}"
   \ -g "!*.{min.js,swp,o,zip,tfstate}"
   \ -g "!**app/assets/javascripts/**/*js"
   \ -g "!{.git,node_modules,vendor}/*"
@@ -142,7 +142,7 @@ nnoremap <leader>r :.w !bash<cr>
 map <leader>id cc<ESC>!!date +'\%Y-\%m-\%d \%T \%z'<CR>idate: <ESC>
 " map <leader>rs :Dispatch rspec %<CR>
 " map <leader>ra :Dispatch rspec<CR>
-let g:rspec_command = "Dispatch rspec {spec}"
+let g:rspec_command = "Dispatch bundle exec rspec {spec}"
 map <leader>rf :call RunCurrentSpecFile()<CR>
 map <leader>rs :call RunNearestSpec()<CR>
 map <leader>ra :call RunAllSpecs()<CR>
@@ -156,7 +156,7 @@ map <leader>ra :call RunAllSpecs()<CR>
 "map <leader>zm :wa\|!zeus r script/rails g migration
 map <leader>vimrc :tabedit ~/.vimrc<CR>
 map <leader>dts :,$-5d<CR>
-map <leader>f yaw:Rg <C-R>"<CR>
+map <leader>f yiw:Rg <C-R>"<CR>
 
 map <leader>t :Tags<cr>
 map <leader>b :Buffers<cr>
