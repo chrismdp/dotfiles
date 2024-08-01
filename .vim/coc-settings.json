@@ -1,0 +1,7 @@
+{
+  "javascript.suggestionActions.enabled": true,
+  "typescript.suggestionActions.enabled": true,
+  "svelte.enable-ts-plugin": true,
+  "tsserver.log": "normal",
+  "sql.database": "postgresql"
+}
