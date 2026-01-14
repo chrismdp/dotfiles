@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/chris/.oh-my-zsh"
+export ZSH="/Users/cp/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -104,17 +104,21 @@ source $ZSH/oh-my-zsh.sh
 alias be="bundle exec"
 alias ts="tmuxstart"
 alias gpoh="git push origin HEAD"
+alias gg="git log --graph --oneline --decorate --all"
 alias gp="git pull"
 alias brow='arch --x86_64 /usr/local/Homebrew/bin/brew'
 alias brew='/opt/homebrew/bin/brew'
 alias gst="git stash"
 alias gsp="git stash pop"
-alias ghs="gh pr view --json statusCheckRollup -q '.statusCheckRollup[] | \"\(.name): \(.status)\"'"
+alias ghs='GH_PAGER= gh pr view --json statusCheckRollup -q '\''.statusCheckRollup[] | "\(.name + (" " * (30 - (.name | length)))) \(.status | if . == "COMPLETED" then "\u001b[32m" + . + "\u001b[0m" elif . == "IN_PROGRESS" then "\u001b[33m" + . + "\u001b[0m" else . end) \(" " * (15 - (.status | length))) \(.conclusion | if . == "SUCCESS" then "\u001b[32m" + . + "\u001b[0m" elif . == "FAILURE" then "\u001b[31m" + . + "\u001b[0m" elif . == "SKIPPED" then "\u001b[90m" + . + "\u001b[0m" elif . == "IN_PROGRESS" then "\u001b[33m" + . + "\u001b[0m" else . end)"'\'
+alias ghv="GH_PAGER= gh pr view && ghs"
+alias ghw="gh pr view --web"
 
 bindkey "^R" history-incremental-search-backward
 export GPG_TTY=$(tty)
 export PATH="/usr/local/opt/ruby/bin:$PATH"
-export PATH="/Users/chris/code/flutter/bin:$PATH"
+export PATH="/Users/cp/code/flutter/bin:$PATH"
+export PATH="/Users/cp/.cargo/bin:$PATH"
 
 # source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
 # source /opt/homebrew/opt/chruby/share/chruby/auto.sh
@@ -128,8 +132,8 @@ rtr ()
 }
 export EDITOR=vim
 
-source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
-source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+# source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
+# source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
 
 source ~/.secret_env
 
@@ -138,19 +142,24 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 
 # heroku autocomplete setup
-HEROKU_AC_ZSH_SETUP_PATH=/Users/chris/Library/Caches/heroku/autocomplete/zsh_setup && test -f $HEROKU_AC_ZSH_SETUP_PATH && source $HEROKU_AC_ZSH_SETUP_PATH;
-source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
+HEROKU_AC_ZSH_SETUP_PATH=/Users/cp/Library/Caches/heroku/autocomplete/zsh_setup && test -f $HEROKU_AC_ZSH_SETUP_PATH && source $HEROKU_AC_ZSH_SETUP_PATH;
+# source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
 export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
-export PATH="/Users/chris/bin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/Users/cp/bin:$PATH"
 
 # pnpm
-export PNPM_HOME="/Users/chris/Library/pnpm"
+export PNPM_HOME="/Users/cp/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
 
-unset ASDF_DIR
-source "$(brew --prefix asdf)/libexec/asdf.sh"
+PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+PATH="$HOME/go/bin:$PATH"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+. "$HOME/.local/bin/env"
+export PATH="/opt/homebrew/opt/go@1.22/bin:$PATH"

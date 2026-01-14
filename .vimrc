@@ -74,6 +74,7 @@ nmap <silent> <C-k> :lbefore<CR>
 nmap <silent> <C-j> :lafter<CR>
 let g:lsc_auto_map = {'defaults': v:true, 'NextReference': '', 'PreviousReference': ''}
 let g:lsc_server_commands = { 'ruby': { 'command': 'ruby-lsp', 'log_level': -1, 'suppress_stderr': v:true } }
+let g:dart_format_on_save = v:true
 
 filetype plugin indent on
 "set modelines=0
@@ -140,7 +141,7 @@ map <C-G> :Rg<CR>
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
   \   'rg --column --line-number --no-heading --color=always --smart-case
-  \ -g "*.{js,ts,tsx,json,php,md,styl,jade,html,config,py,cpp,c,go,hs,rb,conf,tf,rake,*haml,*erb,sass,sql,yml,shader,glsl,proto,dart,vim,ts,tsx,svelte}"
+  \ -g "*.{js,ts,tsx,json,php,md,styl,jade,html,config,py,cpp,c,go,hs,rb,conf,tf,rake,*haml,*erb,sass,sql,yml,shader,glsl,proto,dart,vim,ts,tsx,svelte,gradle}"
   \ -g "!*.{min.js,swp,o,zip,tfstate,gr.dart,freezed.dart,pb.dart,pbtwirp.dart}"
   \ -g "!**app/assets/javascripts/**/*js"
   \ -g "!{.git,node_modules,vendor}/*"
@@ -192,7 +193,7 @@ map <leader>b :Buffers<cr>
 au BufNewFile,BufRead *.as set filetype=actionscript
 au BufNewFile,BufRead *.ru set filetype=ruby
 au BufNewFile,BufRead Gemfile set filetype=ruby
-au BufNewFile,BufRead *.md set filetype=mkd
+au BufNewFile,BufRead *.md set filetype=markdown
 
 " Understand :W as :w
 command! W :w
