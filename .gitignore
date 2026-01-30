@@ -8,3 +8,4 @@ mutt/alias
 .vim/plugged/*
 .vim/autoload/plug.vim.old
 bin/terraform
+.claude/settings.local.json
