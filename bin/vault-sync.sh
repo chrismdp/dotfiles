@@ -1,40 +1,63 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail  # Remove -e, handle errors explicitly
 
 LOG=~/bin/vault-sync.log
-cd /home/cp/code/vault || { echo "ERROR: cd failed $(date '+%H:%M')" > "$LOG"; exit 1; }
+LOCK=~/bin/vault-sync.lock
+VAULT=~/vault
+MAX_RETRIES=5
 
-# Stage all changes
-git add -A
+log() { echo "$1 $(date '+%H:%M')" > "$LOG"; }
 
-# Commit if changes
-COMMITTED=""
-if ! git diff --cached --quiet; then
-    git commit -m "vault backup: $(date '+%Y-%m-%d %H:%M:%S')" >/dev/null 2>&1
-    COMMITTED=" committed,"
+cleanup() {
+    # Abort any in-progress rebase
+    git -C "$VAULT" rebase --abort 2>/dev/null || true
+    rm -f "$LOCK"
+}
+
+# Acquire lock (skip if already running)
+exec 9>"$LOCK"
+if ! flock -n 9; then
+    log "vault: skipped (already running)"
+    exit 0
 fi
+trap cleanup EXIT
 
-# Stage any changes that appeared during commit
-git add -A
+cd "$VAULT" || { log "ERROR: cd failed"; exit 1; }
 
-# Pull with rebase
-if ! ERR=$(git pull --rebase origin main 2>&1); then
-    echo "ERROR: rebase - ${ERR%%$'\n'*} $(date '+%H:%M')" > "$LOG"
-    exit 1
-fi
-
-# Push (retry with pull --rebase if fails, in case remote changed)
-if ! ERR=$(git push origin main 2>&1); then
-    # Remote may have changed - pull rebase and try again
-    if ! ERR=$(git pull --rebase origin main 2>&1); then
-        echo "ERROR: rebase retry - ${ERR%%$'\n'*} $(date '+%H:%M')" > "$LOG"
-        exit 1
+sync_once() {
+    # Stage and commit
+    git add -A
+    local committed=""
+    if ! git diff --cached --quiet; then
+        git commit -q -m "vault backup: $(date '+%Y-%m-%d %H:%M:%S')"
+        committed=" committed,"
     fi
-    if ! ERR=$(git push origin main 2>&1); then
-        echo "ERROR: push retry - ${ERR%%$'\n'*} $(date '+%H:%M')" > "$LOG"
-        exit 1
-    fi
-fi
 
-echo "vault:${COMMITTED} synced $(date '+%H:%M')" > "$LOG"
+    # Pull with rebase
+    if ! git pull --rebase origin main -q; then
+        git rebase --abort 2>/dev/null || true
+        return 1
+    fi
+
+    # Push
+    git push origin main -q || return 1
+
+    echo "$committed"
+    return 0
+}
+
+# Retry loop with exponential backoff
+for attempt in $(seq 1 $MAX_RETRIES); do
+    if committed=$(sync_once 2>&1); then
+        log "vault:${committed} synced"
+        exit 0
+    fi
+
+    if [[ $attempt -lt $MAX_RETRIES ]]; then
+        sleep $((2 ** attempt))  # 2s, 4s, 8s, 16s backoff
+    fi
+done
+
+log "ERROR: failed after $MAX_RETRIES attempts"
+exit 1
