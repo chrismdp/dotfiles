@@ -50,7 +50,11 @@ sync_once() {
 # Retry loop with exponential backoff
 for attempt in $(seq 1 $MAX_RETRIES); do
     if committed=$(sync_once 2>&1); then
-        log "vault:${committed} synced"
+        if [[ $attempt -gt 1 ]]; then
+            log "vault:${committed} synced (retried $((attempt-1))x)"
+        else
+            log "vault:${committed} synced"
+        fi
         exit 0
     fi
 
