@@ -34,10 +34,32 @@ sync_once() {
         committed=" committed,"
     fi
 
+    # Record HEAD before pull
+    local head_before
+    head_before=$(git rev-parse HEAD)
+
     # Pull with rebase
     if ! git pull --rebase origin main -q; then
         git rebase --abort 2>/dev/null || true
         return 1
+    fi
+
+    local head_after
+    head_after=$(git rev-parse HEAD)
+
+    # Process new or changed transcripts that arrived via pull
+    if [[ "$head_before" != "$head_after" ]]; then
+        local changed_transcripts
+        changed_transcripts=$(git diff --name-only --diff-filter=AM "$head_before" "$head_after" -- transcripts/)
+        if [[ -n "$changed_transcripts" ]]; then
+            while IFS= read -r transcript; do
+                # Generate diff for modified files (empty for brand new files)
+                local diff_file
+                diff_file=$(mktemp /tmp/transcript-diff-XXXXXX.txt)
+                git diff "$head_before" "$head_after" -- "$transcript" > "$diff_file" 2>/dev/null || true
+                nohup /home/cp/.claude/skills/heartbeat/scripts/process-transcript.sh "$VAULT/$transcript" "$diff_file" &
+            done <<< "$changed_transcripts"
+        fi
     fi
 
     # Push
@@ -55,6 +77,7 @@ for attempt in $(seq 1 $MAX_RETRIES); do
         else
             log "vault:${committed} synced"
         fi
+
         exit 0
     fi
 
