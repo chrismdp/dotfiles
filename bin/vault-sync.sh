@@ -50,7 +50,7 @@ sync_once() {
     # Process new or changed transcripts that arrived via pull
     if [[ "$head_before" != "$head_after" ]]; then
         local changed_transcripts
-        changed_transcripts=$(git diff --name-only --diff-filter=AM "$head_before" "$head_after" -- transcripts/)
+        changed_transcripts=$(git -c core.quotePath=false diff --name-only --diff-filter=AM "$head_before" "$head_after" -- transcripts/)
         if [[ -n "$changed_transcripts" ]]; then
             while IFS= read -r transcript; do
                 # Generate diff for modified files (empty for brand new files)
