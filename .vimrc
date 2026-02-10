@@ -57,6 +57,9 @@ call plug#begin()
   " Plug 'codechips/coc-svelte', {'do': 'npm install'}
   Plug 'prettier/vim-prettier', { 'do': 'npm install' }
   Plug 'Shougo/context_filetype.vim'
+
+  " Outline sidebar (like NERDTree for document structure)
+  Plug 'preservim/tagbar'
 call plug#end()
 
 if exists('$TMUX')
@@ -246,6 +249,38 @@ map <leader>q gqq<CR>
 
 " map
 nnoremap <F5> :UndotreeToggle<CR>
+nmap <F8> :TagbarToggle<CR>
+map <leader>o :TagbarToggle<CR>
+
+" Use universal-ctags
+let g:tagbar_ctags_bin = '/usr/bin/ctags-universal'
+
+" Markdown outline via regex (ctags 5.9.0 chokes on --- horizontal rules)
+let g:tagbar_type_markdown = {
+  \ 'ctagstype': 'markdown',
+  \ 'ctagsbin': '/home/cp/.vim/markdown_ctags.sh',
+  \ 'ctagsargs': '',
+  \ 'kinds': [
+    \ 'c:chapter',
+    \ 's:section',
+    \ 'S:subsection',
+    \ 't:subsubsection',
+  \ ],
+  \ 'sort': 0,
+  \ 'sro': '|',
+  \ 'kind2scope': {
+    \ 'c': 'chapter',
+    \ 's': 'section',
+    \ 'S': 'subsection',
+    \ 't': 'subsubsection',
+  \ },
+  \ 'scope2kind': {
+    \ 'chapter': 'c',
+    \ 'section': 's',
+    \ 'subsection': 'S',
+    \ 'subsubsection': 't',
+  \ },
+\ }
 
 "" syntastic options for sol
 let g:syntastic_cpp_checkers = []
