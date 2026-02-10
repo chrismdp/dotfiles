@@ -60,7 +60,14 @@ call plug#begin()
 call plug#end()
 
 if exists('$TMUX')
-  let g:tmuxline_preset = 'full'
+  let g:tmuxline_preset = {
+        \ 'a':    '#S',
+        \ 'win':  '#I #W',
+        \ 'cwin': '#I #W',
+        \ 'x':    '#(cut -d" " -f1-3 /proc/loadavg)',
+        \ 'y':    ['%b %d', '%R'],
+        \ 'z':    '#H'
+        \ }
   autocmd VimEnter * Tmuxline lightline
 endif
 
