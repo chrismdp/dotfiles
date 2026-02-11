@@ -1,0 +1,102 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(gog:*)",
+      "Bash(reclaim:*)",
+      "Bash(ynab:*)",
+      "Bash(op:*)",
+      "Bash(gh:*)",
+      "Bash(npx:*)",
+      "Bash(bd:*)",
+      "Bash(apify:*)",
+      "Bash(cd:*)",
+      "Bash(ck:*)",
+      "Bash(~/.local/bin/ck:*)",
+      "Bash(~/go/bin/blogwatcher:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(python3:*)",
+      "Bash(/usr/bin/python3:*)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pip show:*)",
+      "Bash(pip3 list:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(cargo install:*)",
+      "Bash(curl:*)",
+      "Bash(tar:*)",
+      "Bash(sudo mv:*)",
+      "Bash(chmod:*)",
+      "Bash(crontab:*)",
+      "Bash(source:*)",
+      "Bash(test:*)",
+      "Bash(date:*)",
+      "Bash(head:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(xargs:*)",
+      "Bash(file:*)",
+      "Bash(for:*)",
+      "Bash(bash:*)",
+      "Bash(kill:*)",
+      "Bash(zip:*)",
+      "Bash(unzip:*)",
+      "Bash(convert:*)",
+      "Bash(exiftool:*)",
+      "Bash(pdftotext:*)",
+      "Bash(~/bin/vault-sync.sh:*)",
+      "Bash(~/.claude/skills/heartbeat/scripts/send_telegram.sh:*)",
+      "Bash(~/.claude/skills/heartbeat/scripts/read_telegram.sh:*)",
+      "Bash(~/.claude/skills/gemini-images/generate.sh:*)",
+      "Bash(/home/cp/.local/bin/claude:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_run_code",
+      "mcp__playwright__browser_snapshot",
+      "WebFetch(domain:github.com)",
+      "Read(~/Pictures/**)",
+      "Write(~/Pictures/**)",
+      "Edit(~/Pictures/**)",
+      "Read(/tmp/**)",
+      "Write(/tmp/**)",
+      "Edit(/tmp/**)",
+      "Read(~/code/vault/blog/**)",
+      "Read(~/code/blog/**)",
+      "Write(~/code/vault/blog/**)",
+      "Edit(~/code/vault/blog/**)"
+    ],
+    "ask": [
+      "Bash(gog gmail send:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "model": "opus",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/skills/today-in-claude-code/export_claude_sessions.py --today",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/bin/bash /home/cp/.claude/statusline.sh"
+  }
+}
