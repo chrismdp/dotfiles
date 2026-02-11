@@ -60,7 +60,7 @@
       "Bash(~/.claude/skills/heartbeat/scripts/send_telegram.sh:*)",
       "Bash(~/.claude/skills/heartbeat/scripts/read_telegram.sh:*)",
       "Bash(~/.claude/skills/gemini-images/generate.sh:*)",
-      "Bash(/home/cp/.local/bin/claude:*)",
+      "Bash(~/.local/bin/claude:*)",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_run_code",
       "mcp__playwright__browser_snapshot",
@@ -97,6 +97,6 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "/bin/bash /home/cp/.claude/statusline.sh"
+    "command": "/bin/bash ~/.claude/statusline.sh"
   }
 }
