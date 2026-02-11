@@ -1,32 +1,38 @@
+[pull]
+	rebase = true
 [user]
 	name = Chris Parsons
-	email = cp@gower.st
-[color]
-  status = auto
-  diff = auto
-  branch = auto
-  interactive = auto
+	email = cp@cherrypick.co
 [alias]
-  aa = add --all
-  di = diff
-  ci = commit
-  co = checkout
-  st = status
-  dc = diff --cached
-  aadc = !git aa && git dc
-[apply]
-  whitespace = nowarn
+	s      = status
+	fp     = push origin HEAD --force-with-lease
+	ci     = commit --verbose
+	ca     = commit --amend
+	can    = commit --amend --no-edit
+	co     = checkout
+	com    = checkout master
+	cob    = checkout -b
+	di     = diff
+	dc     = diff --cached
+	ds     = diff --staged
+	l      = log
+	rim    = rebase -i origin/master
+	sc     = switch -c
+	recent = branch --sort=-committerdate --format="%(committerdate:relative)%09%(refname:short)"
+[rebase]
+	autosquash = true
 [core]
-  editor = /usr/bin/vim
-  excludesfile = /Users/chris/.gitignore
-[push]
-  default = upstream
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+	excludesfile = /Users/chris/.gitignore
+[fetch]
+	prune = true
+[init]
+	defaultBranch = main
+
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+[commit]
+	verbose = true
 [gpg]
-	program = gpg2
-[credential]
-	helper = osxkeychain
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign

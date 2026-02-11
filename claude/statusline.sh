@@ -35,6 +35,28 @@ progress_bar() {
     echo "$bar"
 }
 
+# Cross-platform date conversion (macOS uses -j -f, Linux uses -d)
+iso_to_epoch() {
+    local iso="$1"
+    if [ "$(uname)" = "Darwin" ]; then
+        # Strip fractional seconds and Z, then parse
+        local clean=$(echo "$iso" | sed 's/\.[0-9]*Z$/Z/' | sed 's/Z$/+0000/')
+        date -j -f "%Y-%m-%dT%H:%M:%S%z" "$clean" "+%s" 2>/dev/null
+    else
+        date -d "$iso" "+%s" 2>/dev/null
+    fi
+}
+
+epoch_to_fmt() {
+    local epoch="$1"
+    local fmt="$2"
+    if [ "$(uname)" = "Darwin" ]; then
+        date -r "$epoch" "+$fmt" 2>/dev/null
+    else
+        date -d "@$epoch" "+$fmt" 2>/dev/null
+    fi
+}
+
 # Read JSON input from stdin
 input=$(cat)
 
@@ -60,8 +82,16 @@ else
     ctx_display="◧ N/A"
 fi
 
-# Fetch API usage data
-token=$(jq -r '.claudeAiOauth.accessToken // empty' ~/.claude/.credentials.json 2>/dev/null)
+# Fetch API usage data - credentials stored differently per platform
+token=""
+if [ "$(uname)" = "Darwin" ]; then
+    creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+    if [ -n "$creds" ]; then
+        token=$(echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+    fi
+else
+    token=$(jq -r '.claudeAiOauth.accessToken // empty' ~/.claude/.credentials.json 2>/dev/null)
+fi
 
 usage_section=""
 if [ -n "$token" ]; then
@@ -86,13 +116,13 @@ if [ -n "$token" ]; then
         # Format 5-hour reset time
         five_hour_reset_display=""
         if [ -n "$five_hour_reset" ] && [ "$five_hour_reset" != "null" ]; then
-            epoch=$(date -d "$five_hour_reset" "+%s" 2>/dev/null)
+            epoch=$(iso_to_epoch "$five_hour_reset")
             if [ -n "$epoch" ]; then
                 remainder=$((epoch % 300))
                 if [ "$remainder" -ne 0 ]; then
                     epoch=$((epoch + 300 - remainder))
                 fi
-                reset_formatted=$(date -d "@$epoch" "+%H:%M" 2>/dev/null)
+                reset_formatted=$(epoch_to_fmt "$epoch" "%H:%M")
                 if [ -n "$reset_formatted" ]; then
                     five_hour_reset_display=" ${DIM}→ ${reset_formatted}${RESET}"
                 fi
@@ -115,13 +145,13 @@ if [ -n "$token" ]; then
         # Format weekly reset time
         weekly_reset_display=""
         if [ -n "$weekly_reset" ] && [ "$weekly_reset" != "null" ]; then
-            epoch=$(date -d "$weekly_reset" "+%s" 2>/dev/null)
+            epoch=$(iso_to_epoch "$weekly_reset")
             if [ -n "$epoch" ]; then
                 remainder=$((epoch % 300))
                 if [ "$remainder" -ne 0 ]; then
                     epoch=$((epoch + 300 - remainder))
                 fi
-                day_name=$(date -d "@$epoch" "+%a %H:%M" 2>/dev/null)
+                day_name=$(epoch_to_fmt "$epoch" "%a %H:%M")
                 if [ -n "$day_name" ]; then
                     weekly_reset_display=" ${DIM}→ ${day_name}${RESET}"
                 fi
@@ -144,32 +174,40 @@ if [ -n "$token" ]; then
     fi
 fi
 
-# Vault sync and heartbeat status
-vault_sync_raw=$(cat ~/bin/vault-sync.log 2>/dev/null || echo 'await')
-hb_last=$(cat /tmp/heartbeat-last-run 2>/dev/null || echo '?')
-hb_err=$(cat /tmp/heartbeat.log 2>/dev/null)
-hb_stale_time=$(tail -1 /tmp/heartbeat-stale-kills.log 2>/dev/null | grep -oP '^\d{2}:\d{2}')
-
-# Transform vault sync to unicode: ✓=committed ↑=synced ⏳=awaiting
-sync_time=$(echo "$vault_sync_raw" | grep -oP '\d{2}:\d{2}' | tail -1)
-if echo "$vault_sync_raw" | grep -q 'committed.*synced'; then
-    vault_sym="✓↑${sync_time}"
-elif echo "$vault_sync_raw" | grep -q 'committed'; then
-    vault_sym="✓"
-elif echo "$vault_sync_raw" | grep -q 'synced'; then
-    vault_sym="↑${sync_time}"
-elif echo "$vault_sync_raw" | grep -q 'await'; then
-    vault_sym="⏳"
-else
-    vault_sym="${vault_sync_raw}"
+# Vault sync and heartbeat status (only show if log files exist)
+sync_section=""
+if [ -f ~/bin/vault-sync.log ]; then
+    vault_sync_raw=$(cat ~/bin/vault-sync.log)
+    sync_time=$(echo "$vault_sync_raw" | grep -oE '[0-9]{2}:[0-9]{2}' | tail -1)
+    if echo "$vault_sync_raw" | grep -q 'committed.*synced'; then
+        vault_sym="✓↑${sync_time}"
+    elif echo "$vault_sync_raw" | grep -q 'committed'; then
+        vault_sym="✓"
+    elif echo "$vault_sync_raw" | grep -q 'synced'; then
+        vault_sym="↑${sync_time}"
+    elif echo "$vault_sync_raw" | grep -q 'await'; then
+        vault_sym="⏳"
+    else
+        vault_sym="${vault_sync_raw}"
+    fi
+    sync_section="${vault_sym}"
 fi
 
-sync_section="${vault_sym} ♡${hb_last}"
-if [ -n "$hb_stale_time" ]; then
-    sync_section="${sync_section} ${YELLOW}⚠${hb_stale_time}${RESET}"
-elif [ -n "$hb_err" ]; then
-    sync_section="${sync_section} ${RED}✗${RESET}"
+if [ -f /tmp/heartbeat-last-run ]; then
+    hb_last=$(cat /tmp/heartbeat-last-run)
+    sync_section="${sync_section} ♡${hb_last}"
+    hb_stale_time=$(tail -1 /tmp/heartbeat-stale-kills.log 2>/dev/null | grep -oE '^[0-9]{2}:[0-9]{2}')
+    hb_err=$(cat /tmp/heartbeat.log 2>/dev/null)
+    if [ -n "$hb_stale_time" ]; then
+        sync_section="${sync_section} ${YELLOW}⚠${hb_stale_time}${RESET}"
+    elif [ -n "$hb_err" ]; then
+        sync_section="${sync_section} ${RED}✗${RESET}"
+    fi
 fi
 
 # Build final output
-echo -e "${CYAN}${workspace_name}${RESET} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}"
+if [ -n "$sync_section" ]; then
+    echo -e "${CYAN}${workspace_name}${RESET} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}"
+else
+    echo -e "${CYAN}${workspace_name}${RESET} ${DIM}|${RESET} ${ctx_display}${usage_section}"
+fi
