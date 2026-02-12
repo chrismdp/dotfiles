@@ -116,7 +116,7 @@ if ! shopt -oq posix; then
   fi
 fi
 [[ "$TERM" == "xterm-ghostty" ]] && export TERM=xterm-256color
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
 # Load secret environment variables
 if [ -f ~/.secret_env ]; then
@@ -128,12 +128,49 @@ alias c='claude'
 alias cr='claude -r'
 alias cb='claude --mcp-config ~/.claude/mcp-playwright.json'
 vc() {
-  cd ~/vault || return
-  if [ -n "$1" ] && [ -n "$TMUX" ]; then
-    tmux rename-window "$1"
+  if [[ "$1" == "--help" ]]; then
+    echo "Usage: vc [name] [claude args...]"
+    echo "  Open Claude in ~/vault."
+    echo "  If name is given, renames tmux window and Claude session to it."
+    echo ""
+    echo "Examples:"
+    echo "  vc                        Start a new vault session"
+    echo "  vc inbox                  Start session named 'inbox'"
+    echo "  vc review --model sonnet  Named session with claude flags"
+    echo ""
+    echo "Note: prompt args are not supported when using a name."
+    return
   fi
-  shift
-  claude "$@"
+  cd ~/vault || return
+  local name="$1"
+  if [ -n "$name" ]; then
+    [ -n "$TMUX" ] && tmux rename-window "$name"
+    shift
+    claude "$@" "/rename $name"
+  else
+    claude "$@"
+  fi
+}
+vcr() {
+  if [[ "$1" == "--help" ]]; then
+    echo "Usage: vcr [name]"
+    echo "  Resume a Claude session in ~/vault."
+    echo "  If name is given, renames tmux window and resumes matching session."
+    echo "  Without name, opens the interactive resume picker."
+    echo ""
+    echo "Examples:"
+    echo "  vcr              Open resume picker"
+    echo "  vcr inbox        Resume session named 'inbox'"
+    return
+  fi
+  cd ~/vault || return
+  local name="$1"
+  if [ -n "$name" ]; then
+    [ -n "$TMUX" ] && tmux rename-window "$name"
+    claude --resume "$name"
+  else
+    claude -r
+  fi
 }
 
 # Auto-attach to tmux (skip if already in tmux, or in VS Code/IDE terminal)

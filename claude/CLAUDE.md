@@ -8,6 +8,10 @@
 - **Consolidate related information**: When preparing for meetings/calls, synthesize research into a single structured document with clear headers rather than spreading across multiple responses.
 - **Prefer stateless over stateful solutions**: When building automation, use existing state (e.g., git diff between commits) rather than introducing new tracking files. Simpler is better.
 
+## Content Accuracy
+
+- **When replacing references, check the source**: If content references something from another document (e.g. "recap from Session 1"), always read the source document to verify what was actually covered. Don't invent replacements based on what sounds right — check what's real.
+
 ## Content Creation
 
 **CRITICAL**: When producing ANY content (blog posts, LinkedIn posts, newsletters, emails, proposals, webinar copy), ALWAYS load the writing-style skill first using `/writing-style`. This applies even for short pieces. AI-generated content always contains slop patterns that need the style guide to avoid.
@@ -22,4 +26,4 @@
 
 ## Email Safety
 
-**NEVER send emails directly** using `gog gmail send`. Always create drafts with `gog gmail drafts create` for user review. Only use `gog gmail send` if the user explicitly says "send it now". When drafting reply emails, use `--reply-to-message-id` to thread into existing conversations.
+**NEVER send emails directly** using `gog gmail send`. Always create drafts with `gog gmail drafts create` for user review. Only use `gog gmail send` if the user explicitly says "send it now". When drafting reply emails, use `--reply-to-message-id` to thread into existing conversations and always include `--to` with the recipient address (the reply-to flag only sets threading headers, it does not auto-populate recipients).

@@ -3,10 +3,12 @@
 # ctags-universal 5.9.0 confuses --- separators with YAML frontmatter.
 FILE="$1"
 awk '
-BEGIN { in_frontmatter = 0; h1 = ""; h2 = ""; h3 = "" }
+BEGIN { in_frontmatter = 0; in_codeblock = 0; h1 = ""; h2 = ""; h3 = "" }
 NR == 1 && /^---$/ { in_frontmatter = 1; next }
 in_frontmatter && /^---$/ { in_frontmatter = 0; next }
 in_frontmatter { next }
+/^```/ { in_codeblock = !in_codeblock; next }
+in_codeblock { next }
 /^# / {
   name = $0; sub(/^# /, "", name)
   h1 = name; h2 = ""; h3 = ""
