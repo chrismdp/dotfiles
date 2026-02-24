@@ -24,6 +24,10 @@
 
 - **Perplexity MCP as fallback**: When WebFetch returns a 403 or other access error, retry using the Perplexity MCP tools (`perplexity_ask` or `perplexity_search`) to fetch and synthesise the content. Perplexity can access pages that block direct fetching.
 
+## Git Safety
+
+- **Never force-push without checking merge status**: Before `--force-with-lease` or `--amend`, always check if the PR has been merged. If merged, create a new branch and PR for follow-up changes.
+
 ## Email Safety
 
 **NEVER send emails directly** using `gog gmail send`. Always create drafts with `gog gmail drafts create` for user review. Only use `gog gmail send` if the user explicitly says "send it now". When drafting reply emails, use `--reply-to-message-id` to thread into existing conversations and always include `--to` with the recipient address (the reply-to flag only sets threading headers, it does not auto-populate recipients).

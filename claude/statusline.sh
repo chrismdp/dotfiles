@@ -68,6 +68,15 @@ else
     workspace_name="Claude"
 fi
 
+# Check for in-progress bead
+bead_id=""
+bead_title=""
+bead_line=$(bd list --status in_progress --limit 1 2>/dev/null | head -1)
+if [ -n "$bead_line" ]; then
+    bead_id=$(echo "$bead_line" | grep -oE '[a-z]+-[a-z0-9]+' | head -1)
+    bead_title=$(echo "$bead_line" | sed 's/^.*- //')
+fi
+
 # Extract context window and model info
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 model=$(echo "$input" | jq -r '.model.display_name // "Claude"')
@@ -206,8 +215,14 @@ if [ -f /tmp/heartbeat-last-run ]; then
 fi
 
 # Build final output
-if [ -n "$sync_section" ]; then
-    echo -e "${CYAN}${workspace_name}${RESET} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}"
+if [ -n "$bead_id" ]; then
+    name_display="${YELLOW}${bead_id}${RESET}"
 else
-    echo -e "${CYAN}${workspace_name}${RESET} ${DIM}|${RESET} ${ctx_display}${usage_section}"
+    name_display="${CYAN}${workspace_name}${RESET}"
+fi
+
+if [ -n "$sync_section" ]; then
+    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}"
+else
+    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section}"
 fi
