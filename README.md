@@ -28,6 +28,7 @@ Symlink the shared Claude Code config into `~/.claude/`:
   ln -sf ~/code/dotfiles/claude/skills ~/.claude/skills
   ln -sf ~/code/dotfiles/claude/settings.json ~/.claude/settings.json
   ln -sf ~/code/dotfiles/claude/statusline.sh ~/.claude/statusline.sh
+  ln -sf ~/code/dotfiles/claude/hooks ~/.claude/hooks
 </pre>
 
 Machine-specific overrides (extra permissions, local tools) go in
