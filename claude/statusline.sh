@@ -82,8 +82,11 @@ used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 model=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 
 # Format context usage with progress bar
+# Scale to 90% of actual capacity (compression triggers at ~90%, so 90% real = 100% displayed)
 if [ -n "$used" ]; then
-    ctx_pct=$(printf "%.0f" "$used")
+    raw_pct=$(printf "%.0f" "$used")
+    ctx_pct=$(( raw_pct * 100 / 90 ))
+    if [ "$ctx_pct" -gt 100 ]; then ctx_pct=100; fi
     ctx_bar=$(progress_bar "$ctx_pct")
     ctx_colour=$(get_colour "$ctx_pct" 40 65)
     ctx_display="◧ ${ctx_pct}% ${ctx_colour}${ctx_bar}${RESET}"
