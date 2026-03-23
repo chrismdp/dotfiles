@@ -205,6 +205,21 @@ if [ -f ~/bin/vault-sync.log ]; then
     sync_section="${vault_sym}"
 fi
 
+# Transcript sync status (show errors if recent)
+if [ -f ~/bin/sync-drive-transcripts.log ]; then
+    last_transcript_line=$(tail -1 ~/bin/sync-drive-transcripts.log)
+    if echo "$last_transcript_line" | grep -q 'ERROR'; then
+        # Count consecutive recent errors
+        err_count=$(tac ~/bin/sync-drive-transcripts.log | grep -c '^.*ERROR' | head -1)
+        consecutive_errs=$(tac ~/bin/sync-drive-transcripts.log | while IFS= read -r line; do
+            if echo "$line" | grep -q 'ERROR'; then echo x; else break; fi
+        done | wc -l)
+        if [ "$consecutive_errs" -ge 3 ]; then
+            sync_section="${sync_section} ${RED}☰${consecutive_errs}✗${RESET}"
+        fi
+    fi
+fi
+
 if [ -f /tmp/heartbeat-last-run ]; then
     hb_last=$(cat /tmp/heartbeat-last-run)
     sync_section="${sync_section} ♡${hb_last}"

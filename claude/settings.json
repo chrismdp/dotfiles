@@ -23,7 +23,11 @@
       "mcp__perplexity__perplexity_ask",
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
-      "mcp__perplexity__perplexity_reason"
+      "mcp__perplexity__perplexity_reason",
+      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh read:*)",
+      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh write:*)",
+      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start:*)",
+      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end:*)"
     ],
     "deny": [],
     "ask": [
@@ -36,7 +40,6 @@
       "/tmp"
     ]
   },
-  "model": "opus",
   "hooks": {
     "SessionEnd": [
       {
@@ -48,15 +51,90 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-start"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-start"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-end"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-end"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start"
+          },
+          {
+            "type": "command",
+            "command": "/home/cp/code/agent-coordination-bus/hooks/post-tool.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
     "command": "/bin/bash ~/.claude/statusline.sh"
   },
-  "autoUpdatesChannel": "latest",
   "enabledPlugins": {
     "lockbox@chrismdp": false
   },
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true
 }

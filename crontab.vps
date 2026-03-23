@@ -1,0 +1,20 @@
+# VPS crontab - install with: crontab ~/code/dotfiles/crontab.vps
+
+# Vault sync (Obsidian git backup)
+*/5 * * * * ~/bin/vault-sync.sh >> ~/bin/vault-sync.log 2>&1
+
+# Claude Code session export
+*/15 * * * * python3 ~/.claude/skills/today-in-claude-code/export_claude_sessions.py --today >/dev/null 2>&1
+
+# Heartbeat (reminders via Telegram)
+*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
+0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
+
+# LinkedIn post sync via Late API
+0 9,13 * * * . ~/.secret_env && python3 ~/.claude/skills/linkedin-sync/scripts/sync_late.py >> ~/vault/tmp/linkedin-sync.log 2>&1
+
+# Google Drive transcript sync
+*/10 * * * * ~/bin/sync-drive-transcripts.sh
+
+# Home Assistant camera snapshots -> Google Drive (noon UK time)
+0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
