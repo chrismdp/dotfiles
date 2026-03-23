@@ -77,8 +77,7 @@
 ## Web Fetching
 
 - **Perplexity MCP as fallback**: When WebFetch returns a 403 or other access error, retry using the Perplexity MCP tools (`perplexity_ask` or `perplexity_search`) to fetch and synthesise the content. Perplexity can access pages that block direct fetching.
-- **Perplexity cost control**: Perplexity API charges per-request + per-token. Prefer cheapest tools first: `perplexity_search` (flat ~$0.005/req) or `perplexity_ask` (Sonar, cheap tokens) for quick lookups. Only use `perplexity_reason` when analysis is needed. **Never use `perplexity_research`** (Deep Research) unless Chris explicitly asks — it's 10-50x more expensive. For `perplexity_search`, set `max_results: 3` unless more are needed.
-- **Perplexity 401 errors**: If Perplexity MCP returns a 401 Unauthorized, remind Chris to buy more Perplexity API credits.
+- **Perplexity cost and usage**: See `/research` skill for the full cost hierarchy and rules. Never use `perplexity_research` (Deep Research) unless Chris explicitly asks.
 
 ## 1Password CLI (op)
 
