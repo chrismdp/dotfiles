@@ -91,6 +91,7 @@
 ## Git Safety
 
 - **Never force-push without checking merge status**: Before `--force-with-lease` or `--amend`, always check if the PR has been merged. If merged, create a new branch and PR for follow-up changes.
+- **No Co-Authored-By trailer**: Do not add `Co-Authored-By: Claude` lines to commit messages.
 
 ## Email Safety
 
