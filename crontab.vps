@@ -1,20 +1,51 @@
-# VPS crontab - install with: crontab ~/code/dotfiles/crontab.vps
+# VPS crontab — SOURCE OF TRUTH.
+# Install with: crontab ~/code/dotfiles/crontab.vps
+# NEVER use `crontab -e` directly on this VPS. Always edit this file first, commit,
+# then re-install. See the rule in ~/vault/CLAUDE.md.
+#
+# Previous drift incident (2026-04-06 → 2026-04-08): the live crontab had extra
+# entries not in this file. The dotfile was re-installed around the kernel-upgrade
+# reboot and clobbered overnight, leann rebuild, LinkedIn sync script name, and
+# inbox collection cadence. Fixed 2026-04-08.
 
-# Vault sync (Obsidian git backup)
+# ---- Vault & sync ----
+
+# Vault git backup (5 min)
 */5 * * * * ~/bin/vault-sync.sh >> ~/bin/vault-sync.log 2>&1
-
-# Claude Code session export
-*/15 * * * * python3 ~/.claude/skills/today-in-claude-code/export_claude_sessions.py --today >/dev/null 2>&1
-
-# Heartbeat (reminders via Telegram)
-*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
-0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
-
-# LinkedIn post sync via Late API
-0 9,13 * * * . ~/.secret_env && python3 ~/.claude/skills/linkedin-sync/scripts/sync_late.py >> ~/vault/tmp/linkedin-sync.log 2>&1
 
 # Google Drive transcript sync
 */10 * * * * ~/bin/sync-drive-transcripts.sh
+
+# ---- Inbox / heartbeat loop ----
+
+# Inbox collection (fast — deterministic bash, no LLM tokens)
+*/5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
+
+# Heartbeat agent (reminders, briefings, project transitions)
+*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
+0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
+
+# ---- Daily batch work ----
+
+# Overnight sweep at 06:00 — yesterday's CC summary, Xero/YNAB recon, BAU project creation, daily note shell
+0 6 * * * /home/cp/.claude/skills/overnight/scripts/run-overnight.sh
+
+# Telegram project-map cleanup
+0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
+
+# LEANN vault index rebuild (incremental, content-hash change detection)
+17 4 * * * . ~/.secret_env && leann build obs-vault --docs ~/vault --embedding-model text-embedding-3-small --embedding-mode openai --file-types '.md' >> /tmp/leann-rebuild.log 2>&1
+
+# Claude Code session export (every 15 min — writes today's sessions to vault for cross-machine aggregation)
+*/15 * * * * python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today >/dev/null 2>&1
+
+# ---- Integrations ----
+
+# LinkedIn post sync via Zernio API
+0 9,13 * * * . ~/.secret_env && python3 ~/.claude/skills/linkedin-sync/scripts/sync_zernio.py >> ~/vault/tmp/linkedin-sync.log 2>&1
+
+# Mapcamp monitor
+0 9 * * * . ~/.secret_env && python3 /home/cp/scripts/monitor-mapcamp.py >> /tmp/monitor-mapcamp.log 2>&1
 
 # Home Assistant camera snapshots -> Google Drive (noon UK time)
 0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
