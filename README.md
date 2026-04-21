@@ -34,6 +34,16 @@ Symlink the shared Claude Code config into `~/.claude/`:
 Machine-specific overrides (extra permissions, local tools) go in
 `~/.claude/settings.local.json` which is not tracked in this repo.
 
+SYSTEMD USER SERVICES
+---------------------
+
+<pre>
+  mkdir -p ~/.config/systemd/user
+  ln -sf ~/code/dotfiles/systemd/user/claude-worker@.service ~/.config/systemd/user/claude-worker@.service
+  systemctl --user daemon-reload
+  systemctl --user enable --now claude-worker@{1,2,3}
+</pre>
+
 What's in each file:
 
 - **CLAUDE.md** - Global instructions, communication style, tool usage rules

@@ -1,0 +1,14 @@
+[Unit]
+Description=Claude Worker %i — picks up vault projects
+After=network.target
+
+[Service]
+Type=simple
+Environment=TZ=Europe/London
+WorkingDirectory=/home/cp/vault
+ExecStart=/home/cp/.claude/skills/worker/scripts/run-worker.sh %i
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
