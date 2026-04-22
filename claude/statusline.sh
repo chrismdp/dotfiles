@@ -60,12 +60,22 @@ epoch_to_fmt() {
 # Read JSON input from stdin
 input=$(cat)
 
+# Extract session name (prefer over workspace name when set)
+session_name=$(echo "$input" | jq -r '.session_name // empty')
+
 # Extract workspace name
 project_dir=$(echo "$input" | jq -r '.workspace.project_dir // empty')
 if [ -n "$project_dir" ]; then
     workspace_name=$(basename "$project_dir")
 else
     workspace_name="Claude"
+fi
+
+# Use session name if set, otherwise fall back to workspace name
+if [ -n "$session_name" ]; then
+    display_name="$session_name"
+else
+    display_name="$workspace_name"
 fi
 
 # Check for in-progress bead
@@ -228,7 +238,8 @@ if [ -f /tmp/heartbeat-last-run ]; then
     if [ -n "$hb_stale_time" ]; then
         sync_section="${sync_section} ${YELLOW}⚠${hb_stale_time}${RESET}"
     elif [ -n "$hb_err" ]; then
-        sync_section="${sync_section} ${RED}✗${RESET}"
+        hb_err_short=$(echo "$hb_err" | tail -1 | cut -c1-40)
+        sync_section="${sync_section} ${RED}✗${hb_err_short}${RESET}"
     fi
 fi
 
@@ -236,7 +247,7 @@ fi
 if [ -n "$bead_id" ]; then
     name_display="${YELLOW}${bead_id}${RESET}"
 else
-    name_display="${CYAN}${workspace_name}${RESET}"
+    name_display="${CYAN}${display_name}${RESET}"
 fi
 
 if [ -n "$sync_section" ]; then

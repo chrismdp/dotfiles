@@ -17,6 +17,8 @@
 - **Consolidate related information**: When preparing for meetings/calls, synthesize research into a single structured document with clear headers rather than spreading across multiple responses.
 - **Prefer stateless over stateful solutions**: When building automation, use existing state (e.g., git diff between commits) rather than introducing new tracking files. Simpler is better.
 - **Batch multiple instructions into one pass**: When Chris gives several changes in a single message, apply all of them in one edit rather than making sequential round-trips. "Crack on" means do everything now, do not wait for confirmation between steps.
+- **Push back on quality proactively**: If content, a plan, or an approach has a clear weakness, say so before shipping. Chris explicitly wants disagreement when quality is at stake. Silence is not helpfulness — flagging "this is too thin" is more valuable than hitting a deadline with weak output.
+- **Pause to write planning docs at scope inflection**: When a design discussion crosses multiple substantive decisions (~5+), stop coding and write planning docs that encode the problem, constraints, and decision rationale. Docs let a fresh session build without replaying the conversation. Offer this proactively when the conversation is accumulating decisions faster than they're being recorded.
 
 ## Client Work Boundaries
 
@@ -25,6 +27,10 @@
 - **Client messages: opportunity framing**: Lead with strategic opportunity, not corrective feedback on style or presentation. Save detailed critiques for conversations with Chris directly.
 - **Don't invent offerings from engagement components**: A module delivered within a bespoke consulting engagement is not a standalone product. Do not promote parts of past engagements into new course/product ideas unless the user explicitly frames them as one.
 - **Senior audiences: frame as adding capability, not closing a gap**: Training and product names for execs and boards must not imply the buyer is behind, missing out, or needs catching up. "Unlock" implies locked. "Rethink" implies wrong. Frame as adding capability.
+
+## Security-Sensitive Changes
+
+- **Enumerate test coverage across all four access boundaries before claiming done**: When changing auth, RLS policies, SECURITY DEFINER functions, membership/access logic, or any code that crosses a security boundary, the bar for "complete" is higher. Before saying the work is done, explicitly walk through four categories and point at the test that covers each — OR state the category isn't covered and why. Don't wait to be asked. The four categories: (1) **positive** — the right principal CAN do what they should; (2) **negative** — the wrong principal CANNOT; (3) **cross-tenant** — one tenant/org/user cannot read or write another's data; (4) **role-bypass** — service_role/admin paths still work. Missing any category without stating why is an incomplete fix.
 
 ## Content Safety
 
@@ -57,7 +63,7 @@
 - **gog slides list-slides** doesn't support `--json`. Use `-p` (plain/TSV) for parseable output.
 - **gog drive get** shows metadata only — it does NOT download file content. For binary file downloads, use `gws drive files get --params '{"fileId": "ID", "alt": "media"}'`. The actual file is saved as `download.pdf` (or similar) in cwd; the JSON response contains a `saved_file` key with the filename.
 - **gog gmail batch modify** takes space-separated message IDs as positional args, not comma-separated.
-- **gog gmail thread get `<threadId>`** to read a full email thread. Not `messages get` or bare `get`.
+- **gog gmail get `<messageId>`** requires a messageId, NOT a threadId. To read a thread use **`gog gmail thread get <threadId>`**. Using `get` with a threadId silently fails or returns wrong data.
 - **gog gmail drafts list** returns empty once drafts are sent/deleted. To find what was actually sent, search sent mail: `gog gmail search "to:<recipient>"`.
 - **gog calendar events `--to`** only accepts explicit dates (YYYY-MM-DD) or keywords (today, tomorrow, monday). Relative expressions like "+2 days" or "+1d" are not supported.
 

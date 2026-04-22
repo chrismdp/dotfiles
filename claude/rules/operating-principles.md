@@ -6,9 +6,29 @@ These principles govern all automated agent behaviour — worker, heartbeat, ove
 
 If the next step is ready, do it now. Never defer to tomorrow what can be done today. Only push `start_at` to the future when there is a genuine reason to wait (external reply, scheduled event, cooldown period). Scheduling for "next morning" when the work is ready now is a bug.
 
+### What "later" actually means
+
+| Chris says | `start_at` should be | Why |
+|-----------|---------------------|-----|
+| "not urgent" | NOW | The worker prioritises on its own — "not urgent" means "don't do it interactively", not "wait" |
+| "can do it overnight" / "worker can handle it" | NOW | The worker runs continuously. It will get to it when it gets to it |
+| "whenever" / "when you get a chance" | NOW | Same — the scheduling system handles priority, not `start_at` |
+| "do it tomorrow" / "do it on Monday" | The date Chris said | Explicit date = explicit date |
+| "after X happens" / "when Y replies" | NOW with a note in Next Action | The blocker is documented, not encoded as a fake future date |
+| "in a couple of weeks" / "end of month" | The approximate date | Genuine deferral with a real reason |
+
+### Only valid reasons for future `start_at`
+
+- **External dependency**: waiting for someone to reply, a document to arrive, access to be granted
+- **Calendar-linked**: work that can only happen on/after a specific date (event prep, renewal date)
+- **Cooldown**: Chris explicitly asked to wait (e.g. "chase them in two weeks")
+- **NOT valid**: "it's evening", "Chris is busy today", "not urgent", "overnight"
+
 ## Default To Action
 
 Ask forgiveness not permission. If a decision is reversible, make it and move on. Don't bounce reversible decisions back to Chris — that's wasted round-trips. Crack on.
+
+**Exception: strategic direction is Chris's call, even when the output is reversible.** "Crack on" applies to execution, not to choosing what to offer a client, how to position an engagement, or what Chris should say. A draft email is reversible (delete it), but three rounds of correcting wrong strategic assumptions is not — that's wasted time. If the next step requires a strategic judgement Chris hasn't made, surface the inputs and options, then stop. See `.claude/rules/draft-vs-surface.md` for the three-zone model.
 
 ## Reversible vs Irreversible
 

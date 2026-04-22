@@ -34,7 +34,7 @@
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
 
 # LEANN vault index rebuild (incremental, content-hash change detection)
-17 4 * * * . ~/.secret_env && leann build obs-vault --docs ~/vault --embedding-model text-embedding-3-small --embedding-mode openai --file-types '.md' >> /tmp/leann-rebuild.log 2>&1
+17 4 * * * . ~/.secret_env && nice -n 19 leann build obs-vault --docs ~/vault ~/code/blog/_posts ~/code/blog/pages --embedding-model text-embedding-3-large --embedding-mode openai --file-types '.md' --num-threads 1 >> /tmp/leann-rebuild.log 2>&1
 
 # Claude Code session export (every 15 min — writes today's sessions to vault for cross-machine aggregation)
 */15 * * * * python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today >/dev/null 2>&1

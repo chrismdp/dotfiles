@@ -127,6 +127,9 @@ fi
 alias c='claude'
 alias cr='claude -r'
 alias cb='claude --mcp-config ~/.claude/mcp-playwright.json'
+
+# Pi wrapper: launch without OpenAI credentials so auto-routing can't pick OpenAI.
+alias pi='env -u OPENAI_API_KEY pi'
 vc() {
   if [[ "$1" == "--help" ]]; then
     echo "Usage: vc [name] [claude args...]"
@@ -191,3 +194,13 @@ if [ -f '/home/cp/code/google-cloud-sdk/path.bash.inc' ]; then . '/home/cp/code/
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/cp/code/google-cloud-sdk/completion.bash.inc' ]; then . '/home/cp/code/google-cloud-sdk/completion.bash.inc'; fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+export TZ="Europe/London"
+
+# airskills: check for skill updates on shell start
+command -v airskills >/dev/null && airskills status -q

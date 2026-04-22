@@ -2,9 +2,14 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash",
+      "Monitor",
       "WebSearch",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_run_code",
@@ -26,7 +31,12 @@
       "mcp__perplexity__perplexity_ask",
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
-      "mcp__perplexity__perplexity_reason"
+      "mcp__perplexity__perplexity_reason",
+      "mcp__posthog__:*",
+      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh read:*)",
+      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh write:*)",
+      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start:*)",
+      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end:*)"
     ],
     "deny": [],
     "ask": [
@@ -45,8 +55,139 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.claude/skills/today-in-claude-code/export_claude_sessions.py --today",
+            "command": "python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today",
             "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-start"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-start"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#❖ }\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◈ ${clean}\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-end"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-end"
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start"
+          },
+          {
+            "type": "command",
+            "command": "/home/cp/code/agent-coordination-bus/hooks/post-tool.sh",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#◈ }\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◉ ${clean}\"; } >/dev/null 2>&1; true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"${clean}\"; } >/dev/null 2>&1; true"
           }
         ]
       }
@@ -58,7 +199,8 @@
   },
   "enabledPlugins": {
     "lockbox@chrismdp": false,
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true
