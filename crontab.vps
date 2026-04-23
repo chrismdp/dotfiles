@@ -19,7 +19,7 @@
 # ---- Inbox / heartbeat loop ----
 
 # Inbox collection (fast — deterministic bash, no LLM tokens)
-*/5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
+*/2 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
 
 # Heartbeat agent (reminders, briefings, project transitions)
 */15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
