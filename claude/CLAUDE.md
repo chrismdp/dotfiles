@@ -57,6 +57,7 @@
 
 - **Always use existing CLI commands before constructing inline Python.** Skills provide CLI scripts (xero_api.py, monzo_api.py, etc.) — use their subcommands rather than importing functions and writing throwaway scripts. Inline Python leads to repeated errors (wrong import names, wrong data structures).
 - **If a CLI command is missing, add it to the script** rather than working around it with inline code. A reusable command beats a one-off script every time.
+- **Verify CLI commands before embedding them in persistent output** (slides, training content, blog posts, documentation). Run `--help` or a dry-run to confirm the subcommand, flag names, and argument order are current. Commands copied from older slide decks, PDFs, or notes are especially suspect — verify, don't copy. Stale commands shipped on slides or in training are demo failures waiting to happen.
 - **gog drive subcommand is `ls`** not `list`. Use `--parent <folder_id>` to list a folder's contents (not `--folder`).
 - **gog drive move** uses `--parent <folder_id>` not `--to`
 - **gog drive rm** requires `--force` in non-interactive/scripted contexts
