@@ -1,0 +1,17 @@
+[Unit]
+Description=Voice Inbox — iOS Shortcuts audio drop → vault
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cp/code/voice-inbox
+Environment=TZ=Europe/London
+EnvironmentFile=/home/cp/code/voice-inbox/.env
+ExecStart=/home/cp/.local/bin/uv run --no-sync uvicorn main:app --host 127.0.0.1 --port 8790
+Restart=always
+RestartSec=5
+StandardOutput=append:/tmp/voice-inbox.log
+StandardError=append:/tmp/voice-inbox.log
+
+[Install]
+WantedBy=default.target

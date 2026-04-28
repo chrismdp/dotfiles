@@ -32,11 +32,7 @@
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
       "mcp__perplexity__perplexity_reason",
-      "mcp__posthog__:*",
-      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh read:*)",
-      "Bash(/home/cp/code/codemap/hooks/file-activity-hook.sh write:*)",
-      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start:*)",
-      "Bash(/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end:*)"
+      "mcp__posthog__:*"
     ],
     "deny": [],
     "ask": [
@@ -63,30 +59,8 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-start"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-start"
-          }
-        ]
-      },
-      {
         "matcher": ".*",
         "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
-          },
           {
             "type": "command",
             "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#❖ }\"; } >/dev/null 2>&1; true"
@@ -105,30 +79,8 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh read-end"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/file-activity-hook.sh write-end"
-          }
-        ]
-      },
-      {
         "matcher": ".*",
         "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-start"
-          },
           {
             "type": "command",
             "command": "/home/cp/code/agent-coordination-bus/hooks/post-tool.sh",
@@ -150,10 +102,6 @@
       {
         "matcher": ".*",
         "hooks": [
-          {
-            "type": "command",
-            "command": "/home/cp/code/codemap/hooks/thinking-hook.sh thinking-end"
-          },
           {
             "type": "command",
             "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"

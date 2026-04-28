@@ -1,0 +1,21 @@
+[Unit]
+Description=Claude Inbox Watcher — polls ~/vault/Inbox.md and runs /triage on new items
+After=network.target
+
+[Service]
+Type=simple
+User=cp
+WorkingDirectory=/home/cp/vault
+Environment="TZ=Europe/London"
+Environment="HOME=/home/cp"
+ExecStart=/home/cp/.claude/skills/heartbeat/scripts/inbox-watcher.sh
+Restart=always
+RestartSec=10
+# Script-level logs go to /tmp/inbox-watcher-logs/watcher.log (created by the
+# script itself via mkdir -p). Any bash-level stdout/stderr falls through to
+# the systemd journal — view with: journalctl -u claude-inbox-watcher
+# Do NOT add StandardOutput=append:... here — that fails 209/STDOUT because
+# systemd opens the log file BEFORE any Exec* runs, so the dir can't exist yet.
+
+[Install]
+WantedBy=multi-user.target

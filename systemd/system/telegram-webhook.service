@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Webhook Handler
+After=network.target
+
+[Service]
+Type=simple
+User=cp
+WorkingDirectory=/home/cp
+Environment="TZ=Europe/London"
+ExecStart=/bin/bash -c 'source /home/cp/.secret_env && exec /usr/bin/python3 /home/cp/.claude/skills/telegram/scripts/webhook-handler.py'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

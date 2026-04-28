@@ -186,9 +186,6 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 . "$HOME/.cargo/env"
 
-# CodeMap hook authentication
-export CODEMAP_API_KEY="924fe0cd125f2e003492a7010658c9794af262355f6b360c4c7781467bab7f87"
-
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/home/cp/code/google-cloud-sdk/path.bash.inc' ]; then . '/home/cp/code/google-cloud-sdk/path.bash.inc'; fi
 
