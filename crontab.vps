@@ -14,12 +14,12 @@
 */5 * * * * ~/bin/vault-sync.sh >> ~/bin/vault-sync.log 2>&1
 
 # Google Drive transcript sync
-*/10 * * * * ~/bin/sync-drive-transcripts.sh
+*/20 * * * * ~/bin/sync-drive-transcripts.sh
 
 # ---- Inbox / heartbeat loop ----
 
 # Inbox collection (fast — deterministic bash, no LLM tokens)
-*/2 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
+*/5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
 
 # Heartbeat agent (reminders, briefings, project transitions)
 */15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
@@ -39,8 +39,8 @@
 # LEANN vault index rebuild (incremental, content-hash change detection)
 17 4 * * * . ~/.secret_env && XDG_RUNTIME_DIR=/run/user/1001 systemd-run --user --scope -p CPUQuota=50% --quiet -- nice -n 19 leann build obs-vault --docs ~/vault ~/code/blog/_posts ~/code/blog/pages --embedding-model text-embedding-3-large --embedding-mode openai --file-types '.md' --num-threads 1 >> /tmp/leann-rebuild.log 2>&1
 
-# Claude Code session export (every 15 min — writes today's sessions to vault for cross-machine aggregation)
-*/15 * * * * python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today >/dev/null 2>&1
+# Claude Code session export (every 30 min — writes today's sessions to vault for cross-machine aggregation)
+*/30 * * * * python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today >/dev/null 2>&1
 
 # ---- Integrations ----
 
