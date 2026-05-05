@@ -53,3 +53,6 @@
 # Home Assistant camera snapshots -> Google Drive (noon UK time)
 0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
 
+# Everyman Winchester cinema listings (Tuesdays 08:00 UTC = 09:00 BST; sentinel prevents double-runs)
+0 8 * * 2 . ~/.secret_env && python3 ~/vault/scripts/everyman-winchester-check.py >> /tmp/everyman-check.log 2>&1
+
