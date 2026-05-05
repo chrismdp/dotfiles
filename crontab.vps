@@ -30,6 +30,9 @@
 # Overnight sweep at 06:00 — yesterday's CC summary, Xero/YNAB recon, BAU project creation, daily note shell
 0 6 * * * /home/cp/.claude/skills/overnight/scripts/run-overnight.sh
 
+# PostHog anomaly scan at 06:00 — daily product analytics health across all projects, Telegram if anomalies
+0 6 * * * /home/cp/.claude/skills/posthog-scan/scripts/run.sh
+
 # Telegram project-map cleanup
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
 
@@ -49,3 +52,8 @@
 
 # Home Assistant camera snapshots -> Google Drive (noon UK time)
 0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
+
+# ---- Weekly checks ----
+
+# Everyman Winchester listings — every Tuesday 09:00 BST (08:00 UTC in summer)
+0 8 * * 2 . ~/.secret_env && python3 ~/vault/scripts/everyman-winchester-check.py >> /tmp/everyman-check.log 2>&1
