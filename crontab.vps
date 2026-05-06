@@ -27,11 +27,18 @@
 
 # ---- Daily batch work ----
 
-# Overnight sweep at 06:00 — yesterday's CC summary, Xero/YNAB recon, BAU project creation, daily note shell
+# Overnight sweep at 06:00 UTC — content check, service health, daily note shell, webinar check, BAU project creation
+# Heavy steps split out 2026-05-06 to spread cron network load (Hostinger suspensions)
 0 6 * * * /home/cp/.claude/skills/overnight/scripts/run-overnight.sh
 
-# PostHog anomaly scan at 06:00 — daily product analytics health across all projects, Telegram if anomalies
+# PostHog anomaly scan at 06:00 UTC — daily product analytics health across all projects, Telegram if anomalies
 0 6 * * * /home/cp/.claude/skills/posthog-scan/scripts/run.sh
+
+# Process yesterday's CC sessions at 06:30 UTC — activity summary + wiki ingest (was Step 1 of /overnight)
+30 6 * * * /home/cp/.claude/skills/process-sessions/scripts/run.sh
+
+# Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
+0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
 
 # Telegram project-map cleanup
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
