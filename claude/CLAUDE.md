@@ -11,6 +11,8 @@
 
 ## Communication Style
 
+- **Never use AskUserQuestion (multiple-choice prompts).** Pre-baked options stop Chris thinking and narrow his answer to whatever Claude already imagined. Ask open questions in plain prose instead, or — better — state your best guess and invite redirect ("I'm going to do X unless you'd rather Y"). The only exception is genuine binary confirmations where the option space is actually closed.
+- **Never proactively offer to /schedule a background agent.** Do not end replies with "Want me to /schedule…" or any variant. The harness's default behaviour suggests this for flag rollouts, soak windows, recurring sweeps, etc. — it is overridden globally. Only run `/schedule` when Chris explicitly asks for it. Suppress the offer even when the trigger conditions look perfect.
 - **When user hints at a location or source, dig deeper**: If user says "check X" or "it's in Y", persist in finding it rather than saying it doesn't exist. User expects resourcefulness.
 - **Exhaust search strategies before declaring "not found"**: Try at least 5 different approaches (different keywords, sender domains, date ranges, `has:attachment`, amount-based, broad terms) before saying something doesn't exist. User expects thorough searching.
 - **Concise requests expect full execution**: Short directives like "pull X from Y" mean figure out the how - don't ask for clarification unless genuinely stuck.
@@ -19,6 +21,7 @@
 - **Batch multiple instructions into one pass**: When Chris gives several changes in a single message, apply all of them in one edit rather than making sequential round-trips. "Crack on" means do everything now, do not wait for confirmation between steps.
 - **Push back on quality proactively**: If content, a plan, or an approach has a clear weakness, say so before shipping. Chris explicitly wants disagreement when quality is at stake. Silence is not helpfulness — flagging "this is too thin" is more valuable than hitting a deadline with weak output.
 - **Pause to write planning docs at scope inflection**: When a design discussion crosses multiple substantive decisions (~5+), stop coding and write planning docs that encode the problem, constraints, and decision rationale. Docs let a fresh session build without replaying the conversation. Offer this proactively when the conversation is accumulating decisions faster than they're being recorded.
+- **"Draw lessons from X" ≠ "build on X"**: When Chris asks to research a system/pattern/runtime (BEAM, actor model, Smalltalk, Unix, etc.) for inspiration on a different design problem, default to extracting *design principles* applicable elsewhere — not "we should build on this stack." Runtime adoption is a separate question and almost never the actual ask. The clue is usually in the framing: "what can we learn from how X handles Y" means principles; "should we use X for Z" means runtime. When ambiguous, surface principles first and only raise runtime adoption if Chris explicitly opens that door. Conflating the two wastes a research round and reframes the design problem onto the wrong axis.
 
 ## Client Work Boundaries
 
@@ -67,6 +70,7 @@
 - **gog gmail get `<messageId>`** requires a messageId, NOT a threadId. To read a thread use **`gog gmail thread get <threadId>`**. Using `get` with a threadId silently fails or returns wrong data.
 - **gog gmail drafts list** returns empty once drafts are sent/deleted. To find what was actually sent, search sent mail: `gog gmail search "to:<recipient>"`.
 - **gog calendar events `--to`** only accepts explicit dates (YYYY-MM-DD) or keywords (today, tomorrow, monday). Relative expressions like "+2 days" or "+1d" are not supported.
+- **gws drive files update `--upload` corrupts non-binary files** by wrapping them in a `multipart/related` envelope, which leaves text/CSV/JSON files unreadable as their declared type. To replace the content of an existing Drive file, use **`gog drive upload <local> --replace <fileId> --mime-type <type>`** instead — it preserves the file's original mime type and Drive sharing links. Confirmed 2026-05-14 after re-uploading a stripped chat log via `gws` set its mimeType to `multipart/related`.
 
 ## Personal Scheduling Rules
 
@@ -80,6 +84,7 @@
 - **When corrected or asked to remember**: If user corrects your approach, disagrees with a choice, or says "remember this" / "note this" / "learn this", write the lesson to the appropriate file before continuing. Pick the right target: skill SKILL.md for skill-specific lessons, project CLAUDE.md for project patterns, global CLAUDE.md for universal preferences. Only capture the reusable pattern, not the specific situation. Don't ask — just do it and briefly mention what you wrote. NEVER just acknowledge verbally.
 - **Verify bulk operations by reading results**: After bulk file changes (sed, Python replace, migrations), always read a sample file's actual content to confirm the change took effect. Don't trust command output or exit codes alone — read the file.
 - **YAML frontmatter: parse, don't string-replace**: When modifying YAML frontmatter in bulk, split on `---` delimiters and only modify the frontmatter section. Never use whole-file string replace — body text often contains the same strings as frontmatter and will get corrupted.
+- **Renumber numbered lists after insertion or deletion**: When inserting or removing items in a markdown numbered list (steps, ordered enumeration), renumber the remaining items in the same edit. Numbers don't auto-adjust — verify the sequence is contiguous before completing the tool call. Two consecutive items numbered "5." is a bug, not a stylistic quirk.
 
 ## Web Fetching
 
