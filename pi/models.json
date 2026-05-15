@@ -1,0 +1,37 @@
+{
+  "providers": {
+    "openrouter": {
+      "models": [
+        {
+          "id": "tencent/hy3-preview",
+          "name": "Tencent Hy3 Preview",
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "reasoning": true,
+          "cost": {
+            "input": 0.066,
+            "output": 0.26,
+            "cacheRead": 0.029,
+            "cacheWrite": 0
+          }
+        }
+      ],
+      "modelOverrides": {
+        "deepseek/deepseek-v4-pro": {
+          "cost": {
+            "input": 1.69,
+            "output": 3.38,
+            "cacheRead": 0.13,
+            "cacheWrite": 0
+          },
+          "compat": {
+            "openRouterRouting": {
+              "ignore": ["deepseek", "baidu", "alibaba", "siliconflow", "atlascloud"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
