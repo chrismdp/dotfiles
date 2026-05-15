@@ -74,6 +74,26 @@ NGINX SITES
 Site depends on a Let's Encrypt cert at `/etc/letsencrypt/live/vps.chrismdp.com/`
 — provision separately with `certbot --nginx`.
 
+PI CODING AGENT
+---------------
+
+Symlink the shared pi config into `~/.pi/agent/`:
+
+<pre>
+  bash ~/code/dotfiles/pi/install.sh
+</pre>
+
+What's in each file:
+
+- **settings.json** - Default provider/model, thinking block preferences
+- **models.json** - Custom model pricing and OpenRouter routing overrides
+- **agents/task.md** - General-purpose subagent definition (DeepSeek V4 Pro)
+- **extensions/protected-paths.ts** - Guards write/edit to sensitive paths
+- **extensions/claude-rules.ts** - Auto-loads `.claude/rules/*.md` into system prompt
+- **extensions/bash-guard.ts** - Blocks destructive bash commands, prompts for irreversible ones
+
+Note: `auth.json` (API keys) is NOT managed here — it lives only at `~/.pi/agent/auth.json`.
+
 What's in each file:
 
 - **CLAUDE.md** - Global instructions, communication style, tool usage rules
