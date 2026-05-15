@@ -8,6 +8,8 @@
   },
   "permissions": {
     "allow": [
+      "Monitor(until *)",
+      "Monitor(tail *)",
       "Bash",
       "Monitor",
       "WebSearch",
