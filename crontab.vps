@@ -10,6 +10,15 @@
 
 # ---- Vault & sync ----
 
+# Rotate agent stream logs (keep last 1MB to preserve tail context)
+0 0 * * * truncate -s 1048576 /tmp/worker-1-stream.jsonl /tmp/heartbeat-stream.jsonl 2>/dev/null
+
+# Prune daily-rotated worker usage logs older than 30 days (per-turn token+cost data)
+5 0 * * * find /tmp -maxdepth 1 -name 'worker-*-usage-*.jsonl' -mtime +30 -delete 2>/dev/null
+
+# Prune raw pi request payloads older than 14 days (set by run-worker.sh via PI_LOG_REQUESTS)
+6 0 * * * find /tmp/pi-requests -mindepth 1 -mtime +14 -delete 2>/dev/null
+
 # Vault git backup (5 min)
 */5 * * * * ~/bin/vault-sync.sh >> ~/bin/vault-sync.log 2>&1
 
@@ -21,8 +30,8 @@
 # Inbox collection (fast — deterministic bash, no LLM tokens)
 */5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
 
-# Heartbeat agent (reminders, briefings, project transitions)
-*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat.sh
+# Heartbeat agent (reminders, briefings, project transitions) — now via pi
+*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat-pi.sh
 0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
 
 # ---- Daily batch work ----
@@ -39,6 +48,9 @@
 
 # Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
 0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
+
+# Nightly dream — 20:00 UTC (21:00 BST) — each run rolls a fresh lens (pick-lens.sh) to surface different threads, not the same patterns. State logged to ~/.claude/skills/dream/state/dreams.jsonl.
+0 20 * * * /home/cp/.claude/skills/dream/scripts/run.sh
 
 # Telegram project-map cleanup
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
@@ -59,6 +71,9 @@
 
 # Home Assistant camera snapshots -> Google Drive (noon UK time)
 0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
+
+# Litter tray check (15:00 UK time; sleeps until sunset+15, capped at 21:00, snapshots + Gemini verdict)
+0 14,15 * * * /home/cp/.claude/skills/home/scripts/litter-tray-check.sh
 
 # Everyman Winchester cinema listings (Tuesdays 08:00 UTC = 09:00 BST; sentinel prevents double-runs)
 0 8 * * 2 . ~/.secret_env && python3 ~/vault/scripts/everyman-winchester-check.py >> /tmp/everyman-check.log 2>&1
