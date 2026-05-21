@@ -78,3 +78,15 @@
 # Everyman Winchester cinema listings (Tuesdays 08:00 UTC = 09:00 BST; sentinel prevents double-runs)
 0 8 * * 2 . ~/.secret_env && python3 ~/vault/scripts/everyman-winchester-check.py >> /tmp/everyman-check.log 2>&1
 
+# ---- Batched Telegram digests ----
+# Slot times (London local): weekdays 09:00 / 13:00 / 17:30 / 21:00; weekends + holidays 13:30 only.
+# Cron fires at both UTC times (BST and GMT) for each slot; the wrapper (run-digest-if-due.sh) reads
+# Europe/London local time and only fires when it matches a configured slot for the current day mode.
+# Mode rules: weekday = Mon-Fri AND no ~/vault/tmp/on-holiday flag; otherwise weekend mode.
+# Urgent path bypasses this entirely (see enqueue.sh --urgent and triage/references/telegram-rules.md).
+0 8,9 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
+0 12,13 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
+30 12,13 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekend
+30 16,17 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
+0 20,21 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
+
