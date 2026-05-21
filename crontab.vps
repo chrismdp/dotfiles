@@ -84,9 +84,9 @@
 # Europe/London local time and only fires when it matches a configured slot for the current day mode.
 # Mode rules: weekday = Mon-Fri AND no ~/vault/tmp/on-holiday flag; otherwise weekend mode.
 # Urgent path bypasses this entirely (see enqueue.sh --urgent and triage/references/telegram-rules.md).
-0 8,9 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
-0 12,13 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
-30 12,13 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekend
-30 16,17 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
-0 20,21 * * * /home/cp/.claude/skills/telegram/scripts/run-digest-if-due.sh weekday
+0 8,9 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
+0 12,13 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
+30 12,13 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekend
+30 16,17 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
+0 20,21 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
 
