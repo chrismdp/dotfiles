@@ -49,7 +49,7 @@
 # Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
 0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
 
-# Nightly dream — 20:00 UTC (21:00 BST) — each run rolls a fresh lens (pick-lens.sh) to surface different threads, not the same patterns. State logged to ~/.claude/skills/dream/state/dreams.jsonl.
+# Nightly dream — 20:00 UTC (21:00 BST). Each run rolls a fresh lens (pick-lens.sh) to surface different threads. State lives in the vault at ~/vault/.dream-state/dreams.jsonl (overridable via $DREAM_STATE_DIR).
 0 20 * * * /home/cp/.claude/skills/dream/scripts/run.sh
 
 # Telegram project-map cleanup
