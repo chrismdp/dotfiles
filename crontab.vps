@@ -72,6 +72,12 @@
 # Home Assistant camera snapshots -> Google Drive (noon UK time)
 0 11,12 * * * /home/cp/scripts/ha-snapshots.sh
 
+# Calendar-aware HA state (every 15 min): pushes binary_sensor.chris_on_holiday
+# (from chris.p@rsons.org OOO events — used by heater_morning_up to skip on holidays),
+# sensor.outdoor_temperature (from weather entity, for long-term stats),
+# and sensor.office_temperature_c (Fahrenheit source converted to Celsius).
+*/15 * * * * /home/cp/scripts/ha-calendar-status.py >> /tmp/ha-calendar-status.log 2>&1
+
 # Litter tray check (15:00 UK time; sleeps until sunset+15, capped at 21:00, snapshots + Gemini verdict)
 0 14,15 * * * /home/cp/.claude/skills/home/scripts/litter-tray-check.sh
 
