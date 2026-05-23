@@ -31,7 +31,7 @@
 */5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
 
 # Heartbeat agent (reminders, briefings, project transitions) — now via pi
-# DISABLED 2026-05-23 (Chris asked to stop heartbeat): */15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat-pi.sh
+*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat-pi.sh
 0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
 
 # ---- Daily batch work ----
