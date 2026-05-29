@@ -46,6 +46,9 @@
 # Process yesterday's CC sessions at 06:30 UTC — activity summary + wiki ingest (was Step 1 of /overnight)
 30 6 * * * /home/cp/.claude/skills/process-sessions/scripts/run.sh
 
+# Bluesky feed curator at 07:00 UTC — unfollow US partisan culture-war accounts, follow high-signal AI, Telegram report if anything changed
+0 7 * * * /home/cp/.claude/skills/bluesky/scripts/run.sh
+
 # Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
 0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
 
