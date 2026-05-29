@@ -1,0 +1,17 @@
+[Unit]
+Description=vault-inbox — voice notes + web clips → vault
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cp/code/vault-inbox
+Environment=TZ=Europe/London
+EnvironmentFile=-/home/cp/code/vault-inbox/.env
+ExecStart=/home/cp/code/dotfiles/systemd/user/vault-inbox-run.sh
+Restart=always
+RestartSec=5
+StandardOutput=append:/tmp/vault-inbox.log
+StandardError=append:/tmp/vault-inbox.log
+
+[Install]
+WantedBy=default.target
