@@ -49,6 +49,9 @@
 # Bluesky feed curator at 07:00 UTC — unfollow US partisan culture-war accounts, follow high-signal AI, Telegram report if anything changed
 0 7 * * * /home/cp/.claude/skills/bluesky/scripts/run.sh
 
+# Airskills Pro trial-signup digest at 08:00 UTC — Telegram roll-up of new pro_trial_requests since last run, silent if none (real-time per-signup Telegram already fires from the API route)
+0 8 * * * . ~/.secret_env && /home/cp/vault/scripts/airskills-trial-digest.sh >> /tmp/airskills-trial-digest.log 2>&1
+
 # Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
 0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
 
