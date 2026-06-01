@@ -34,6 +34,12 @@
 */15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat-pi.sh
 0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
 
+# Agent project dispatch — hand projects with `assignee: <vault-agent>` to that
+# agent's pi session (e.g. Process Newsletter → Richard). The generic worker
+# skips agent-assigned projects, so this loop is what picks them up. Per-project
+# flock dedups in-flight runs.
+*/5 6-23 * * * flock -n /tmp/agent-project-dispatch.cron.lock /home/cp/.claude/skills/telegram/scripts/agent-project-dispatch.sh >> /tmp/agent-project-dispatch.log 2>&1
+
 # ---- Daily batch work ----
 
 # Overnight sweep at 06:00 UTC — content check, service health, daily note shell, webinar check, BAU project creation
