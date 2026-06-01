@@ -40,6 +40,11 @@
 # flock dedups in-flight runs.
 */5 6-23 * * * flock -n /tmp/agent-project-dispatch.cron.lock /home/cp/.claude/skills/telegram/scripts/agent-project-dispatch.sh >> /tmp/agent-project-dispatch.log 2>&1
 
+# Agent health check every 2h (waking hours) — alerts Chris only if Rich is
+# unhealthy (failed/unsent/confab dispatch, stuck project, dead cron/webhook).
+# Silent when healthy. Manual: agent-health-check.sh richard
+0 8-22/2 * * * /home/cp/.claude/skills/telegram/scripts/agent-health-check.sh richard --alert >> /tmp/agent-health-check.log 2>&1
+
 # ---- Daily batch work ----
 
 # Overnight sweep at 06:00 UTC — content check, service health, daily note shell, webinar check, BAU project creation
