@@ -5,9 +5,21 @@
 - **Review Board for review, Claude Remote for archiving**: When generating output that needs Chris's review (images, drafts, content), use the Review Board (`review.images` in project YAML) as the primary review surface — not Claude Remote. Still upload to Claude Remote for archiving/sharing, but the Review Board is how Chris sees and acts on things. Never save only to `tmp/`.
 - **Vault notes are archives, not delivery**: Chris does not read vault notes regularly. When a skill produces a summary, reflection, or conclusion Chris should see, present it directly: inline if interactive, Telegram if not. Writing to a vault note alone is archiving, not delivery. The actual read surfaces are the Review Board, Telegram, and the conversation itself.
 
+## Cost-Metered Operations
+
+- **Never blindly retry an operation that costs money per run.** Embeddings, paid API calls, Deep Research, paid model calls — each run is real spend. When one fails, **diagnose the root cause cheaply first** (read the error, reproduce the failing component in isolation on tiny input, check the box's health) BEFORE relaunching the full job. On 2026-06-04 I re-ran a full vault embedding rebuild ~6 times while debugging unrelated failures (a token-batch bug, no swap, wrong swappiness, and a runaway `ugrep` eating all RAM) — each re-run re-embedded 186K chunks via OpenAI for real money, and the actual blocker was external. The rule: if a job is expensive AND failing, the next step is a *cheap* experiment, not another *expensive* full run. Surface the cost to Chris before repeating a paid job.
+
 ## Credential Safety
 
 - **Never ask for passwords directly.** When iCloud, Apple, or other credential-dependent operations are needed, write a script the user runs interactively in their own terminal. Passwords must never pass through the conversation.
+- **Secrets live in 1Password; `~/.secret_env` is SELF-GENERATING — never put resolved secret values in it.** It is a 3-line bootstrap that, when sourced, loads everything live:
+  ```sh
+  export OP_SERVICE_ACCOUNT_TOKEN=<token>        # the ONE secret op can't generate (op's own auth) — the only literal value in this file
+  source <(op inject -i "$HOME/.secret_env.tpl") # resolves every other secret from 1Password "AI Agent" via the template
+  ```
+  Source of truth is the 1Password "AI Agent" vault, referenced by `~/.secret_env.tpl` (`{{ op://AI Agent/<Item>/<Field> }}` placeholders). **To add a secret: just add an `export NAME="{{ op://AI Agent/Item/Field }}"` line to `~/.secret_env.tpl`** — the next source of `~/.secret_env` picks it up automatically; there is NO regenerate step and no static file. The file is `chmod 400` (read-only) to block accidental clobbering. To rotate the SA token: `chmod +w ~/.secret_env`, edit the `OP_SERVICE_ACCOUNT_TOKEN=` line, `chmod 400` back (Chris does this — keys never pass through chat). Verify: `env -i bash -c '. ~/.secret_env; op whoami >/dev/null && echo ok'`. **Never write resolved `export NAME=value` lines into `~/.secret_env`** (a stray `op inject -o ~/.secret_env` or a hand-appended export) — it stops being self-generating and silently goes stale / drops the SA token (this muted all six agent bots on 2026-06-04). **Note: `.secret_env` runs `op inject` on every source**, and `send.sh`/`agent-dispatch` source it per call — so high-frequency paths make a 1Password API call each time; watch for latency / rate-limits.
+- **A live shell/process keeps its OLD env after a key rotates.** The running Claude Code process (and every bash subshell it spawns) inherits the env it launched with — regenerating `~/.secret_env` does NOT update an already-running process. Diagnose a stale key by comparing `echo ${VAR: -4}` in the bash tool vs a fresh `env -i bash -c '. ~/.secret_env; ...'`. The durable fix (1Password + template + regenerate) covers future shells and cron; the running session needs the value passed inline.
+- **Keys baked into build artifacts are a trap — check the artifact, not just the env.** Some tools snapshot a secret into a built file at build time and never re-read the env, so after a key rotation they keep using the stale key and fail in misleading ways. (leann did exactly this — baked the OpenAI key into its index; it has since been **removed**, 2026-06-04, see vault CLAUDE.md. The general principle stands for any future indexer/build tool, incl. Trove: if auth fails after a rotation, look for a cached key inside the build output.)
 
 ## Communication Style
 
@@ -20,6 +32,7 @@
 - **Prefer stateless over stateful solutions**: When building automation, use existing state (e.g., git diff between commits) rather than introducing new tracking files. Simpler is better.
 - **Batch multiple instructions into one pass**: When Chris gives several changes in a single message, apply all of them in one edit rather than making sequential round-trips. "Crack on" means do everything now, do not wait for confirmation between steps.
 - **Push back on quality proactively**: If content, a plan, or an approach has a clear weakness, say so before shipping. Chris explicitly wants disagreement when quality is at stake. Silence is not helpfulness — flagging "this is too thin" is more valuable than hitting a deadline with weak output.
+- **Prefer the minimal self-build when Chris already owns the hard parts**: Before adopting or fully standing up a third-party integration/wrapper, check whether the core capability already exists in his stack (a queue, an auth, a receiver, a CLI). If a small build on existing pieces would suffice, surface that trade-off BEFORE building out the heavy dependency — don't clone/install/wire the whole thing first and present it as the path. A wrapper that bundles its own copy of a tool he already runs is a red flag to raise early.
 - **Pause to write planning docs at scope inflection**: When a design discussion crosses multiple substantive decisions (~5+), stop coding and write planning docs that encode the problem, constraints, and decision rationale. Docs let a fresh session build without replaying the conversation. Offer this proactively when the conversation is accumulating decisions faster than they're being recorded.
 - **"Draw lessons from X" ≠ "build on X"**: When Chris asks to research a system/pattern/runtime (BEAM, actor model, Smalltalk, Unix, etc.) for inspiration on a different design problem, default to extracting *design principles* applicable elsewhere — not "we should build on this stack." Runtime adoption is a separate question and almost never the actual ask. The clue is usually in the framing: "what can we learn from how X handles Y" means principles; "should we use X for Z" means runtime. When ambiguous, surface principles first and only raise runtime adoption if Chris explicitly opens that door. Conflating the two wastes a research round and reframes the design problem onto the wrong axis.
 
@@ -55,6 +68,7 @@
 
 - **Always search BOTH skill locations**: Skills live in `~/.claude/skills/` (global) AND `.claude/skills/` (project). When looking for a skill, search both directories. Global skills won't appear in the project tree.
 - **Investigate before workaround**: When a sub-agent produces poor output, check whether it had the right context (loaded skills, clear instructions) before proposing alternative workflows or reclassifying tasks.
+- **Mirror skill edits via `airskills sync`, never manual `cp`**: Skills used by multiple agents are mirrored across directories like `~/.claude/skills/<name>/` and `~/.pi/agent/skills/<name>/`. The canonical sync tool is `airskills` (`/home/cp/.local/bin/airskills`) — run `airskills sync` after editing a skill. Do NOT `cp` files between directories manually. `airskills status` shows sync state; `airskills login` is required to push.
 
 ## CLI Scripts and Inline Code
 
@@ -93,7 +107,7 @@
 
 ## 1Password CLI (op)
 
-- **Always pass `--vault Kim`**: The `op` CLI on this VPS runs as a service account which requires an explicit vault. List vaults with `op vault list` if unsure. Never omit `--vault`.
+- **Always pass `--vault "AI Agent"`**: The `op` CLI on this VPS runs as a service account which requires an explicit vault. List vaults with `op vault list` if unsure. Never omit `--vault`. (This vault was previously named "Kim"; renamed to "AI Agent" 2026-06-03.)
 
 ## Claude CLI
 
@@ -109,5 +123,4 @@
 
 **NEVER send emails directly** using `gog gmail send`. Always create drafts with `gog gmail drafts create` for user review. Only use `gog gmail send` if the user explicitly says "send it now". When drafting reply emails, use `--reply-to-message-id` to thread into existing conversations and always include `--to` with the recipient address (the reply-to flag only sets threading headers, it does not auto-populate recipients).
 
-- **Ignore and delete emails from Ansarada about "Project Scribe"**: Any email from Ansarada mentioning "Project Scribe" should be ignored and deleted — do not flag, surface, or draft responses to these.
 - **Amazon delivery notifications: skip unless alcohol**: Do not send Telegram alerts for Amazon delivery emails (out for delivery, delivered, dispatched) unless the item description suggests it contains alcohol. All other Amazon deliveries should be ignored silently.

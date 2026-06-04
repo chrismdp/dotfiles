@@ -1,7 +1,9 @@
-# VPS crontab — SOURCE OF TRUTH.
-# Install with: crontab ~/code/dotfiles/crontab.vps
-# NEVER use `crontab -e` directly on this VPS. Always edit this file first, commit,
-# then re-install. See the rule in ~/vault/CLAUDE.md.
+# VPS crontab — BASE (system / vault / integration / generic agent jobs).
+# This is NOT the whole crontab: per-agent jobs live in ~/vault/agents/<name>/crontab.
+# Install with: ~/code/dotfiles/build-crontab.sh   (merges base + all agent fragments)
+# Do NOT run `crontab ~/code/dotfiles/crontab.vps` directly — it would drop every
+# agent's cron. NEVER use `crontab -e`. Edit this file or an agent fragment, commit,
+# then re-run build-crontab.sh. See the rule in ~/vault/CLAUDE.md.
 #
 # Previous drift incident (2026-04-06 → 2026-04-08): the live crontab had extra
 # entries not in this file. The dotfile was re-installed around the kernel-upgrade
@@ -44,6 +46,8 @@
 # unhealthy (failed/unsent/confab dispatch, stuck project, dead cron/webhook).
 # Silent when healthy. Manual: agent-health-check.sh richard
 0 8-22/2 * * * /home/cp/.claude/skills/telegram/scripts/agent-health-check.sh richard --alert >> /tmp/agent-health-check.log 2>&1
+# NOTE: per-agent scheduled jobs (Penelope, Bella, …) now live in
+# ~/vault/agents/<name>/crontab and are merged in by build-crontab.sh.
 
 # ---- Daily batch work ----
 
@@ -70,8 +74,11 @@
 # Telegram project-map cleanup
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
 
-# LEANN vault index rebuild (incremental, content-hash change detection)
-17 4 * * * . ~/.secret_env && XDG_RUNTIME_DIR=/run/user/1001 systemd-run --user --scope -p CPUQuota=25% -p TasksMax=8 --quiet -- nice -n 19 leann build obs-vault --docs ~/vault ~/code/blog/_posts ~/code/blog/pages --embedding-model text-embedding-3-large --embedding-mode openai --file-types '.md' --num-threads 1 >> /tmp/leann-rebuild.log 2>&1
+# LEANN vault index rebuild — REMOVED 2026-06-04. leann was unreliable to rebuild
+# (300K-token batch overflow, ~12GB OOM on this box) and repeated re-embeds cost
+# real money. Semantic search is on hold until Trove replaces it; `leann` in PATH
+# is now a deprecation shim pointing at grep. Do not re-add without a working,
+# cost-bounded indexer.
 
 # Claude Code session export (every 30 min — writes today's sessions to vault for cross-machine aggregation)
 */30 * * * * python3 ~/.claude/skills/process-sessions/export_claude_sessions.py --today >/dev/null 2>&1
