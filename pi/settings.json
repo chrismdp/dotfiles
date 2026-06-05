@@ -1,7 +1,10 @@
 {
-  "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "openrouter",
-  "defaultModel": "deepseek/deepseek-v4-pro",
+  "lastChangelogVersion": "0.76.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
   "hideThinkingBlock": true,
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "high",
+  "packages": [
+    "npm:pi-schedule-prompt"
+  ]
 }

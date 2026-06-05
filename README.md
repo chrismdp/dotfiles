@@ -53,14 +53,16 @@ SYSTEMD SYSTEM SERVICES
 -----------------------
 
 <pre>
-  for svc in claude-inbox-watcher.service telegram-webhook.service; do
+  for svc in telegram-webhook.service; do
     sudo ln -sf ~/code/dotfiles/systemd/system/$svc /etc/systemd/system/$svc
   done
   sudo systemctl daemon-reload
-  sudo systemctl enable --now claude-inbox-watcher telegram-webhook
+  sudo systemctl enable --now telegram-webhook
 </pre>
 
 `telegram-webhook.service` sources `~/.secret_env` for `TELEGRAM_BOT_TOKEN` etc.
+
+`claude-inbox-watcher.service` is **retired** (2026-06-06): `Inbox.md` is no longer a routing buffer — `collect.sh` routes incoming signal at source (Gmail → Em, saved links → Richard). Routing failures go to Bella via `notify-bella-failure.sh`.
 
 NGINX SITES
 -----------

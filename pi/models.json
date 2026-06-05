@@ -5,7 +5,9 @@
         {
           "id": "tencent/hy3-preview",
           "name": "Tencent Hy3 Preview",
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "contextWindow": 262144,
           "maxTokens": 262144,
           "reasoning": true,
@@ -15,9 +17,38 @@
             "cacheRead": 0.029,
             "cacheWrite": 0
           }
+        },
+        {
+          "id": "deepseek/deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash (OpenRouter)",
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1048576,
+          "maxTokens": 16384,
+          "reasoning": true,
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true
+          },
+          "cost": {
+            "input": 0.0983,
+            "output": 0.1966,
+            "cacheRead": 0.0197,
+            "cacheWrite": 0
+          }
         }
       ],
       "modelOverrides": {
+        "deepseek/deepseek-v4-flash": {
+          "compat": {
+            "openRouterRouting": {
+              "ignore": [
+                "deepinfra"
+              ]
+            }
+          }
+        },
         "deepseek/deepseek-v4-pro": {
           "cost": {
             "input": 1.69,
@@ -27,11 +58,45 @@
           },
           "compat": {
             "openRouterRouting": {
-              "ignore": ["deepseek", "baidu", "alibaba", "siliconflow", "atlascloud"]
+              "zdr": true,
+              "ignore": [
+                "deepseek",
+                "baidu",
+                "alibaba",
+                "siliconflow",
+                "atlas-cloud"
+              ]
             }
           }
         }
       }
+    },
+    "deepinfra": {
+      "baseUrl": "https://api.deepinfra.com/v1/openai",
+      "apiKey": "DEEPINFRA_API_KEY",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "deepseek-ai/DeepSeek-V4-Flash",
+          "name": "DeepSeek V4 Flash (DeepInfra)",
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1048576,
+          "maxTokens": 16384,
+          "reasoning": true,
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true
+          },
+          "cost": {
+            "input": 0.1,
+            "output": 0.2,
+            "cacheRead": 0.02,
+            "cacheWrite": 0
+          }
+        }
+      ]
     }
   }
 }

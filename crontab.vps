@@ -42,10 +42,6 @@
 # flock dedups in-flight runs.
 */5 6-23 * * * flock -n /tmp/agent-project-dispatch.cron.lock /home/cp/.claude/skills/telegram/scripts/agent-project-dispatch.sh >> /tmp/agent-project-dispatch.log 2>&1
 
-# Agent health check every 2h (waking hours) — alerts Chris only if Rich is
-# unhealthy (failed/unsent/confab dispatch, stuck project, dead cron/webhook).
-# Silent when healthy. Manual: agent-health-check.sh richard
-0 8-22/2 * * * /home/cp/.claude/skills/telegram/scripts/agent-health-check.sh richard --alert >> /tmp/agent-health-check.log 2>&1
 # NOTE: per-agent scheduled jobs (Penelope, Bella, …) now live in
 # ~/vault/agents/<name>/crontab and are merged in by build-crontab.sh.
 
@@ -61,12 +57,13 @@
 # Process yesterday's CC sessions at 06:30 UTC — activity summary + wiki ingest (was Step 1 of /overnight)
 30 6 * * * /home/cp/.claude/skills/process-sessions/scripts/run.sh
 
-# Bluesky feed curator at 07:00 UTC — unfollow US partisan culture-war accounts, follow high-signal AI, Telegram report if anything changed
-0 7 * * * /home/cp/.claude/skills/bluesky/scripts/run.sh
+# Bluesky feed curator MOVED to ~/vault/agents/maggie/crontab (Maggie owns it now,
+# 2026-06-05) — her reflex dispatches her to run the /bluesky skill; her reply is the
+# surface (own bot), no more send.sh → kim. The old run.sh is retired.
 
 
-# Financial reconciliation at 12:00 UTC = 1pm BST / midday GMT — Xero receipts + YNAB (was Step 2 of /overnight)
-0 12 * * * /home/cp/.claude/skills/process-financial/scripts/run.sh
+# Financial reconciliation cron MOVED to ~/vault/agents/charles/crontab (Charles owns
+# it now — the engine runs there, then hands its result into Charles's chat to surface).
 
 # Nightly dream — 20:00 UTC (21:00 BST). Each run rolls a fresh lens (pick-lens.sh) to surface different threads. State lives in the vault at ~/vault/.dream-state/dreams.jsonl (overridable via $DREAM_STATE_DIR).
 0 20 * * * /home/cp/.claude/skills/dream/scripts/run.sh

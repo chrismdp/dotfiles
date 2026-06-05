@@ -193,11 +193,16 @@ if [ -f '/home/cp/code/google-cloud-sdk/path.bash.inc' ]; then . '/home/cp/code/
 if [ -f '/home/cp/code/google-cloud-sdk/completion.bash.inc' ]; then . '/home/cp/code/google-cloud-sdk/completion.bash.inc'; fi
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Lazy-load nvm: defer sourcing until nvm/node/npm/npx is first invoked (saves ~0.3s/shell)
+__load_nvm() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+nvm()  { __load_nvm; nvm "$@"; }
+node() { __load_nvm; node "$@"; }
+npm()  { __load_nvm; npm "$@"; }
+npx()  { __load_nvm; npx "$@"; }
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 export TZ="Europe/London"
-
-# airskills: check for skill updates on shell start
-command -v airskills >/dev/null && airskills status -q

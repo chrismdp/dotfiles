@@ -243,6 +243,49 @@ if [ -f /tmp/heartbeat-last-run ]; then
     fi
 fi
 
+# /ralph ticket counts. Look in the workspace dir for one of the four
+# ticket folder conventions (docs/tickets, docs/changes, doc/changes,
+# doc/tickets). If none exists at the top level, look one level down —
+# if exactly one immediate subdir has a ticket folder, use it. Mirrors
+# the bundled ralph.sh runner's descent rule.
+find_ticket_dir() {
+    local base="$1"
+    for sub in docs/tickets docs/changes doc/changes doc/tickets; do
+        if [ -d "$base/$sub" ]; then
+            echo "$base/$sub"
+            return 0
+        fi
+    done
+    return 1
+}
+
+ticket_section=""
+if [ -n "$project_dir" ]; then
+    ticket_dir=$(find_ticket_dir "$project_dir")
+    if [ -z "$ticket_dir" ]; then
+        candidates=()
+        for child in "$project_dir"/*/; do
+            [ -d "$child" ] || continue
+            found=$(find_ticket_dir "${child%/}")
+            [ -n "$found" ] && candidates+=("$found")
+        done
+        if [ "${#candidates[@]}" -eq 1 ]; then
+            ticket_dir="${candidates[0]}"
+        fi
+    fi
+    if [ -n "$ticket_dir" ] && [ -d "$ticket_dir" ]; then
+        todo_count=$(grep -lE "^status: (todo|draft|pending)" "$ticket_dir"/*.md 2>/dev/null | wc -l)
+        doing_count=$(grep -lE "^status: (doing|in-progress)" "$ticket_dir"/*.md 2>/dev/null | wc -l)
+        if [ "$todo_count" -gt 0 ] || [ "$doing_count" -gt 0 ]; then
+            parts=()
+            [ "$doing_count" -gt 0 ] && parts+=("${doing_count} doing")
+            [ "$todo_count" -gt 0 ] && parts+=("${todo_count} todo")
+            joined=$(IFS=' · '; echo "${parts[*]}")
+            ticket_section=" ${DIM}|${RESET} ⎘ ${joined}"
+        fi
+    fi
+fi
+
 # Build final output
 if [ -n "$bead_id" ]; then
     name_display="${YELLOW}${bead_id}${RESET}"
@@ -251,7 +294,7 @@ else
 fi
 
 if [ -n "$sync_section" ]; then
-    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}"
+    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section} ${DIM}|${RESET} ${sync_section}${ticket_section}"
 else
-    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section}"
+    echo -e "${name_display} ${DIM}|${RESET} ${ctx_display}${usage_section}${ticket_section}"
 fi

@@ -7,9 +7,9 @@ set -eo pipefail
 cd /home/cp/code/vault-inbox
 set +u; source /home/cp/.secret_env 2>/dev/null || true   # provides OP_SERVICE_ACCOUNT_TOKEN
 set -u
-TOKEN="$(/usr/bin/op read 'op://Kim/vault-inbox/password' 2>/dev/null || true)"
+TOKEN="$(/usr/bin/op read 'op://AI Agent/vault-inbox/password' 2>/dev/null || true)"
 if [ -z "$TOKEN" ]; then
-  echo "vault-inbox: could not read op://Kim/vault-inbox/password (is OP_SERVICE_ACCOUNT_TOKEN set?)" >&2
+  echo "vault-inbox: could not read op://AI Agent/vault-inbox/password (is OP_SERVICE_ACCOUNT_TOKEN set?)" >&2
   exit 1
 fi
 export VAULT_INBOX_BEARER_TOKEN="$TOKEN"
