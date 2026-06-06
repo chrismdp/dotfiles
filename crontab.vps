@@ -13,7 +13,7 @@
 # ---- Vault & sync ----
 
 # Rotate agent stream logs (keep last 1MB to preserve tail context)
-0 0 * * * truncate -s 1048576 /tmp/worker-1-stream.jsonl /tmp/heartbeat-stream.jsonl 2>/dev/null
+0 0 * * * truncate -s 1048576 /tmp/worker-1-stream.jsonl 2>/dev/null
 
 # Prune daily-rotated worker usage logs older than 30 days (per-turn token+cost data)
 5 0 * * * find /tmp -maxdepth 1 -name 'worker-*-usage-*.jsonl' -mtime +30 -delete 2>/dev/null
@@ -27,14 +27,11 @@
 # Google Drive transcript sync
 */20 * * * * ~/bin/sync-drive-transcripts.sh
 
-# ---- Inbox / heartbeat loop ----
-
-# Inbox collection (fast — deterministic bash, no LLM tokens)
-*/5 6-23 * * * flock -n /tmp/collect.lock /home/cp/.claude/skills/heartbeat/scripts/collect.sh >> /tmp/collect.log 2>&1
-
-# Heartbeat agent (reminders, briefings, project transitions) — now via pi
-*/15 6-23 * * * /home/cp/.claude/skills/heartbeat/scripts/run-heartbeat-pi.sh
-0 4 * * * /home/cp/.claude/skills/heartbeat/scripts/clean-heartbeat-sent.sh
+# ---- Inbox collection ----
+# Central heartbeat RETIRED 2026-06-06: reminders → agent reminder reflexes,
+# pre-meeting briefings → Carly/Bobby morning calendar callout, project overdue →
+# Penelope's board audit. See agents/Spec - Retire Central Heartbeat.md.
+# Em's own collect + digest cron moved to agents/em/crontab 2026-06-06 (self-contained).
 
 # Agent project dispatch — hand projects with `assignee: <vault-agent>` to that
 # agent's pi session (e.g. Process Newsletter → Richard). The generic worker
@@ -47,9 +44,10 @@
 
 # ---- Daily batch work ----
 
-# Overnight sweep at 06:00 UTC — content check, service health, daily note shell, webinar check, BAU project creation
-# Heavy steps split out 2026-05-06 to spread cron network load (Hostinger suspensions)
-0 6 * * * /home/cp/.claude/skills/overnight/scripts/run-overnight.sh
+# Overnight skill RETIRED 2026-06-06 — its duties moved to agents: daily-note shell → Penelope,
+# service health → Bella, newsletter → Maggie, periodic reviews → Miriam, blog/webinar → Maggie
+# reminders, pay-salary → Charles reminder. Content/YNAB/Xero already covered by Maggie/Charles.
+# BAU projects retired with it. See projects/Multi-Agent Transition…/ and agents/RUNTIME-DESIGN.md.
 
 # PostHog anomaly scan at 06:00 UTC — daily product analytics health across all projects, Telegram if anomalies
 0 6 * * * /home/cp/.claude/skills/posthog-scan/scripts/run.sh
@@ -103,14 +101,5 @@
 # DISABLED 2026-05-26 (Chris asked to stop — Poppins doing it now): 0 8 * * 2 . ~/.secret_env && python3 ~/vault/scripts/everyman-winchester-check.py >> /tmp/everyman-check.log 2>&1
 
 # ---- Batched Telegram digests ----
-# Slot times (London local): weekdays 09:00 / 13:00 / 17:30 / 21:00; weekends + holidays 13:30 only.
-# Cron fires at both UTC times (BST and GMT) for each slot; the wrapper (run-digest-if-due.sh) reads
-# Europe/London local time and only fires when it matches a configured slot for the current day mode.
-# Mode rules: weekday = Mon-Fri AND no ~/vault/tmp/on-holiday flag; otherwise weekend mode.
-# Urgent path bypasses this entirely (see enqueue.sh --urgent and triage/references/telegram-rules.md).
-0 8,9 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
-0 12,13 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
-30 12,13 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekend
-30 16,17 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
-0 20,21 * * * /home/cp/.claude/skills/triage/scripts/run-digest-if-due.sh weekday
+# Moved to agents/em/crontab 2026-06-06 (Em owns her own digest schedule — self-contained).
 
