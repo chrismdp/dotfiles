@@ -63,8 +63,8 @@
 # Financial reconciliation cron MOVED to ~/vault/agents/charles/crontab (Charles owns
 # it now — the engine runs there, then hands its result into Charles's chat to surface).
 
-# Nightly dream — 20:00 UTC (21:00 BST). Each run rolls a fresh lens (pick-lens.sh) to surface different threads. State lives in the vault at ~/vault/.dream-state/dreams.jsonl (overridable via $DREAM_STATE_DIR).
-0 20 * * * /home/cp/.claude/skills/dream/scripts/run.sh
+# Nightly dream MOVED to ~/vault/agents/richard/crontab (Richard owns reading-shaped
+# wiki synthesis and routes concrete follow-ups to the relevant domain agent).
 
 # Telegram project-map cleanup
 0 4 * * * /home/cp/.claude/skills/telegram/scripts/project-map.sh clean >> /tmp/telegram-webhook.log 2>&1
