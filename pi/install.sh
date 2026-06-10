@@ -34,14 +34,31 @@ fi
 ln -s "${DOTFILES_PI}/agents/task.md" "${PI_AGENT}/agents/task.md"
 echo "  ✓ agents/task.md"
 
-# ---- extensions/*.ts ----
-for ext in protected-paths claude-rules bash-guard; do
-    target="${PI_AGENT}/extensions/${ext}.ts"
+# ---- extensions: every *.ts and *.test.mjs in dotfiles, plus subdirectories ----
+for src in "${DOTFILES_PI}"/extensions/*.ts "${DOTFILES_PI}"/extensions/*.test.mjs; do
+    [ -e "${src}" ] || continue
+    name="$(basename "${src}")"
+    target="${PI_AGENT}/extensions/${name}"
     if [ -L "${target}" ] || [ -f "${target}" ]; then
         rm -f "${target}"
     fi
-    ln -s "${DOTFILES_PI}/extensions/${ext}.ts" "${target}"
-    echo "  ✓ extensions/${ext}.ts"
+    ln -s "${src}" "${target}"
+    echo "  ✓ extensions/${name}"
+done
+
+# extension subdirectories (e.g. subagent/) — symlink the whole dir
+for src in "${DOTFILES_PI}"/extensions/*/; do
+    [ -e "${src}" ] || continue
+    name="$(basename "${src}")"
+    target="${PI_AGENT}/extensions/${name}"
+    if [ -L "${target}" ]; then
+        rm -f "${target}"
+    elif [ -d "${target}" ]; then
+        echo "  ✗ extensions/${name}/ exists as a real directory — move it into dotfiles first" >&2
+        exit 1
+    fi
+    ln -s "${src%/}" "${target}"
+    echo "  ✓ extensions/${name}/"
 done
 
 echo ""

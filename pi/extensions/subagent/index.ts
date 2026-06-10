@@ -1,0 +1,1 @@
+/home/cp/.local/share/fnm/node-versions/v22.22.0/installation/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/index.ts
