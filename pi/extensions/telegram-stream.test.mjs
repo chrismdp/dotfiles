@@ -54,19 +54,24 @@ function check(name, fn) {
 }
 
 // 1. Three texts → bubble holds 1..2 (send + edit), text 3 held back.
+//    Older committed text sits in an expandable quote; latest committed text stays visible.
+//    No extra label above the quote — the quote bar is enough UI.
 {
 	const c = await drive([asst("alpha"), asst("beta"), asst("gamma")]);
 	check("3 texts: 2 bubble calls, last held", () => assert.equal(c.length, 2));
-	check("3 texts: first is silent sendMessage of text 1", () => {
+	check("3 texts: first is silent HTML sendMessage of text 1", () => {
 		assert.equal(c[0].method, "sendMessage");
 		assert.equal(c[0].body.disable_notification, true);
+		assert.equal(c[0].body.parse_mode, "HTML");
 		assert.ok(c[0].body.text.includes("alpha"));
 		assert.ok(!c[0].body.text.includes("beta"));
 	});
-	check("3 texts: second is editMessageText accumulating 1+2", () => {
+	check("3 texts: second edits quote=alpha + visible latest=beta", () => {
 		assert.equal(c[1].method, "editMessageText");
 		assert.equal(c[1].body.message_id, 100);
-		assert.ok(c[1].body.text.includes("alpha") && c[1].body.text.includes("beta"));
+		assert.equal(c[1].body.parse_mode, "HTML");
+		assert.ok(c[1].body.text.includes("<blockquote expandable>alpha</blockquote>"));
+		assert.ok(c[1].body.text.endsWith("beta"));
 		assert.ok(!c[1].body.text.includes("gamma")); // last text never committed
 	});
 }
@@ -80,9 +85,10 @@ function check(name, fn) {
 // 3. Two texts → exactly one silent sendMessage (text 1), text 2 held.
 {
 	const c = await drive([asst("first"), asst("second")]);
-	check("2 texts: one sendMessage, no edit, last held", () => {
+	check("2 texts: one HTML sendMessage, no edit, last held", () => {
 		assert.equal(c.length, 1);
 		assert.equal(c[0].method, "sendMessage");
+		assert.equal(c[0].body.parse_mode, "HTML");
 		assert.ok(c[0].body.text.includes("first") && !c[0].body.text.includes("second"));
 	});
 }
@@ -101,10 +107,12 @@ function check(name, fn) {
 // 5. Tool-result and thinking messages are ignored (don't advance the lookahead).
 {
 	const c = await drive([asst("a"), toolMsg(), thinking(), asst("b"), asst("c")]);
-	check("tool/thinking ignored: bubble = a then a+b, c held", () => {
+	check("tool/thinking ignored: quote=a, visible latest=b, c held", () => {
 		assert.equal(c.length, 2);
 		assert.ok(c[0].body.text.includes("a") && !c[0].body.text.includes("b"));
-		assert.ok(c[1].body.text.includes("a") && c[1].body.text.includes("b") && !c[1].body.text.includes("c"));
+		assert.ok(c[1].body.text.includes("<blockquote expandable>a</blockquote>"));
+		assert.ok(c[1].body.text.endsWith("b"));
+		assert.ok(!c[1].body.text.endsWith("c"));
 	});
 }
 
@@ -117,7 +125,36 @@ function check(name, fn) {
 	});
 }
 
-// 7. Interrupt / preempt: Chris sends another turn mid-run. That kills pi #1 and
+// 7. Banned user-facing terms are paraphrased before the silent bubble is sent.
+{
+	const c = await drive([asst("alpha goblin"), asst("beta")]);
+	check("banned user term paraphrased in bubble", () => {
+		assert.equal(c.length, 1);
+		assert.ok(c[0].body.text.includes("the banned term"));
+		assert.ok(!/\bgoblins?\b/i.test(c[0].body.text));
+	});
+}
+
+// 7b. HTML is escaped before sending via parse_mode=HTML.
+{
+	const c = await drive([asst("alpha <tag> & stuff"), asst("beta")]);
+	check("HTML escaped in bubble", () => {
+		assert.equal(c.length, 1);
+		assert.ok(c[0].body.text.includes("alpha &lt;tag&gt; &amp; stuff"));
+	});
+}
+
+// 7c. Clamp applies to rendered HTML length, not raw text length.
+{
+	const noisy = "<&>".repeat(2000);
+	const c = await drive([asst(noisy), asst("beta")]);
+	check("HTML-rendered bubble stays under Telegram limit", () => {
+		assert.equal(c.length, 1);
+		assert.ok(c[0].body.text.length <= 3900);
+	});
+}
+
+// 8. Interrupt / preempt: Chris sends another turn mid-run. That kills pi #1 and
 //    starts a FRESH pi process (= a fresh ext closure). The new run must open a NEW
 //    bubble and never edit the interrupted run's message. Modelled as two ext() calls
 //    sharing one fetch log (two processes, one chat).

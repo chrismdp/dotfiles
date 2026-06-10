@@ -30,15 +30,17 @@
  * Bubble I/O is direct Telegram API (sendMessage with disable_notification, then
  * editMessageText), using the agent's bot token from process.env[PI_TG_BOT_VAR] and
  * TELEGRAM_CHAT_ID — both inherited from agent-dispatch (which sources ~/.secret_env).
- * Plain text, no parse_mode: the bubble is ephemeral working narration, so we don't
- * risk a markdown parse error mid-stream; the final answer keeps full formatting via
- * send.sh. Tool calls / thinking blocks never stream; control tokens are stripped.
+ * The bubble uses Telegram HTML so older committed updates can sit inside an
+ * expandable blockquote while the latest committed update remains visible at the
+ * bottom. The final answer is still held back and sent by agent-dispatch. Tool calls /
+ * thinking blocks never stream; control tokens are stripped.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const TOKEN = /^(NO[_ ]?REPORT|REPORT|PORT)\s*(:.*)?$/;
-const MAX = 3900; // keep the bubble comfortably under Telegram's 4096 hard limit
+const BANNED_USER_TERM = /\bgoblins?\b/gi;
+const MAX = 3900; // rendered HTML length; keep comfortably under Telegram's 4096 hard limit
 const PREFIX = "💭 ";
 const SEP = "\n\n";
 
@@ -58,6 +60,7 @@ function stripControlTokens(text: string): string {
 		.split("\n")
 		.filter((ln) => !TOKEN.test(ln.trim()))
 		.join("\n")
+		.replace(BANNED_USER_TERM, "the banned term")
 		.trim();
 }
 
@@ -73,7 +76,7 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	let bubbleId: number | null = null;
-	let bubbleText = "";
+	let committed: string[] = [];
 	let pending: string | null = null;
 	// Serialise state mutations: message_end handlers can overlap, and the bubble
 	// state (id/text/pending) is shared. Chain each on the previous so commits stay
@@ -94,22 +97,43 @@ export default function (pi: ExtensionAPI) {
 		}
 	}
 
-	function clamp(s: string): string {
-		const full = PREFIX + s;
-		if (full.length <= MAX) return full;
-		// keep the most recent thinking — truncate the head
-		return `${PREFIX}…${s.slice(s.length - (MAX - PREFIX.length - 1))}`;
+	function escapeHtml(s: string): string {
+		return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	}
+
+	function renderParts(parts: string[]): string {
+		if (parts.length === 0) return PREFIX.trim();
+		const latest = parts[parts.length - 1];
+		const older = parts.slice(0, -1).join(SEP);
+		if (!older) return `${PREFIX}${escapeHtml(latest)}`;
+		return `${PREFIX}<blockquote expandable>${escapeHtml(older)}</blockquote>${SEP}${escapeHtml(latest)}`;
+	}
+
+	function render(parts: string[]): string {
+		const safe = [...parts];
+		while (safe.length > 1) {
+			const body = renderParts(safe);
+			if (body.length <= MAX) return body;
+			safe.shift(); // keep the most recent updates; old ones are least useful
+		}
+		let latest = safe[0] || "";
+		while (latest.length > 0) {
+			const body = renderParts([`…${latest}`]);
+			if (body.length <= MAX) return body;
+			latest = latest.slice(Math.ceil(latest.length / 10));
+		}
+		return PREFIX.trim();
 	}
 
 	async function commit(text: string): Promise<void> {
-		bubbleText += (bubbleText ? SEP : "") + text;
-		const body = clamp(bubbleText);
+		committed = [...committed, text];
+		const body = render(committed);
 		if (bubbleId === null) {
-			const res = await tg("sendMessage", { chat_id: chatId, text: body, disable_notification: true });
+			const res = await tg("sendMessage", { chat_id: chatId, text: body, parse_mode: "HTML", disable_notification: true });
 			const id = res?.result?.message_id;
 			if (typeof id === "number") bubbleId = id;
 		} else {
-			await tg("editMessageText", { chat_id: chatId, message_id: bubbleId, text: body });
+			await tg("editMessageText", { chat_id: chatId, message_id: bubbleId, text: body, parse_mode: "HTML" });
 		}
 	}
 
