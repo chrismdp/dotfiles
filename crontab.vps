@@ -33,12 +33,6 @@
 # Penelope's board audit. See agents/Spec - Retire Central Heartbeat.md.
 # Em's own collect + digest cron moved to agents/em/crontab 2026-06-06 (self-contained).
 
-# Agent project dispatch — hand projects with `assignee: <vault-agent>` to that
-# agent's pi session (e.g. Process Newsletter → Richard). The generic worker
-# skips agent-assigned projects, so this loop is what picks them up. Per-project
-# flock dedups in-flight runs.
-*/5 6-23 * * * flock -n /tmp/agent-project-dispatch.cron.lock /home/cp/.claude/skills/telegram/scripts/agent-project-dispatch.sh >> /tmp/agent-project-dispatch.log 2>&1
-
 # NOTE: per-agent scheduled jobs (Penelope, Bella, …) now live in
 # ~/vault/agents/<name>/crontab and are merged in by build-crontab.sh.
 
@@ -49,8 +43,11 @@
 # reminders, pay-salary → Charles reminder. Content/YNAB/Xero already covered by Maggie/Charles.
 # BAU projects retired with it. See projects/Multi-Agent Transition…/ and agents/RUNTIME-DESIGN.md.
 
-# PostHog anomaly scan at 06:00 UTC — daily product analytics health across all projects, Telegram if anomalies
-0 6 * * * /home/cp/.claude/skills/posthog-scan/scripts/run.sh
+# PostHog anomaly scan RETIRED 2026-06-06 — the broad all-project/Airskills daily scan
+# was too general for the new agent split. Maggie now owns a chrismdp.com/blog/content
+# PostHog read in agents/maggie/crontab; Bobby owns RightMessage-led commercial
+# segmentation and may use PostHog only as supporting funnel evidence.
+# 0 6 * * * /home/cp/.claude/skills/posthog-scan/scripts/run.sh
 
 # Process yesterday's CC sessions at 06:30 UTC — activity summary + wiki ingest (was Step 1 of /overnight)
 30 6 * * * /home/cp/.claude/skills/process-sessions/scripts/run.sh
@@ -82,6 +79,10 @@
 
 # LinkedIn post sync via Zernio API
 0 9,13 * * * . ~/.secret_env && python3 ~/.claude/skills/linkedin-sync/scripts/sync_zernio.py >> ~/vault/tmp/linkedin-sync.log 2>&1
+
+# Kit ICP sweep — enrol ICP subscribers into "Ask how doing" (~/code/kit-webhooks)
+# KIT_API_KEY is deliberately NOT in .secret_env (agents must not inherit it) — op read it here.
+4 8 * * 1-5 . ~/.secret_env && export KIT_API_KEY="$(op read 'op://AI Agent/Kit API/v4 key')" && python3 ~/code/kit-webhooks/icp_sweep.py >> /tmp/kit-icp-sweep.log 2>&1
 
 # Mapcamp monitor
 0 9 * * * . ~/.secret_env && python3 /home/cp/scripts/monitor-mapcamp.py >> /tmp/monitor-mapcamp.log 2>&1
