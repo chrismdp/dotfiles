@@ -84,9 +84,6 @@ SHELL=/bin/bash
 
 # ---- Integrations ----
 
-# LinkedIn post sync via Zernio API
-0 9,13 * * * . ~/.secret_env && python3 ~/.claude/skills/linkedin-sync/scripts/sync_zernio.py >> ~/vault/tmp/linkedin-sync.log 2>&1
-
 # Kit ICP sweep — enrol ICP subscribers into "Ask how doing" (~/code/kit-webhooks)
 # KIT_API_KEY is deliberately NOT in .secret_env (agents must not inherit it) — op read it here.
 4 8 * * 1-5 . ~/.secret_env && export KIT_API_KEY="$(op read 'op://AI Agent/Kit API/v4 key')" && python3 ~/code/kit-webhooks/icp_sweep.py >> /tmp/kit-icp-sweep.log 2>&1
