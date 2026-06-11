@@ -10,6 +10,13 @@
 # reboot and clobbered overnight, leann rebuild, LinkedIn sync script name, and
 # inbox collection cadence. Fixed 2026-04-08.
 
+# bash, NOT the /bin/sh default: ~/.secret_env uses process substitution
+# (`source <(op inject ...)`), which dash cannot parse — under sh every
+# `. ~/.secret_env && ...` job dies silently at the source line. This killed
+# LinkedIn sync + Mapcamp monitor from 2026-06-04 (when .secret_env went
+# self-generating) until caught 2026-06-11 via the missed Kit ICP sweep.
+SHELL=/bin/bash
+
 # ---- Vault & sync ----
 
 # Rotate agent stream logs (keep last 1MB to preserve tail context)
