@@ -48,6 +48,15 @@
 
 - **Enumerate test coverage across all four access boundaries before claiming done**: When changing auth, RLS policies, SECURITY DEFINER functions, membership/access logic, or any code that crosses a security boundary, the bar for "complete" is higher. Before saying the work is done, explicitly walk through four categories and point at the test that covers each — OR state the category isn't covered and why. Don't wait to be asked. The four categories: (1) **positive** — the right principal CAN do what they should; (2) **negative** — the wrong principal CANNOT; (3) **cross-tenant** — one tenant/org/user cannot read or write another's data; (4) **role-bypass** — service_role/admin paths still work. Missing any category without stating why is an incomplete fix.
 
+## Engineering Practice (how Chris wants software built)
+
+This is a core, cross-project preference — apply it on every codebase, not just one.
+
+- **Test-first TDD, literally — red, green, refactor.** Write a failing test that demands the next behaviour, watch it FAIL, write the minimal code to pass, then refactor on green. **No production code without a failing test that asked for it.** Writing tests after the implementation is NOT TDD — if you catch yourself doing it, stop and restart that slice test-first. (On 2026-06-24 I shipped impl-then-tests on 27agents and Chris flagged it.)
+- **Outside-in / BDD.** Start from the **observable behaviour** at the boundary (an HTTP response, a message reply, a row written) and drive inward. Express that behaviour as the failing acceptance check first, then step down to the units. **Tests assert behaviour, not internal structure** — they must survive a refactor.
+- **Elephant carpaccio — slice thin and vertical.** Cut a feature into the thinnest possible slices, each cutting through the **whole stack** end-to-end and delivering one tiny observable increment. Never slice horizontally (all the schema, then all the API, then all the UI). Many paper-thin vertical slices that each work beat one fat slice that doesn't yet.
+- **Green is necessary, not sufficient** — after the bar is green, run the real behaviour (a curl, a real message, a browser visit) before calling it done.
+
 ## Content Safety
 
 - **Never include client names or identifiable data in public content** (blog posts, LinkedIn posts, newsletters). Anonymise all references ("inbound sales lead", "training enquiry"). Only name clients if Chris has a published case study for them. Link to `/training` page instead.
