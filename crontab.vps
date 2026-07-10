@@ -19,11 +19,17 @@ SHELL=/bin/bash
 
 # ---- Vault & sync ----
 
-# Rotate agent stream logs (keep last 1MB to preserve tail context)
-0 0 * * * truncate -s 1048576 /tmp/worker-1-stream.jsonl 2>/dev/null
+# Rotate worker stream log (keep last 1MB to preserve tail context; lives in ~/logs since 2026-07-10)
+0 0 * * * truncate -s 1048576 /home/cp/logs/worker-1-stream.jsonl 2>/dev/null
 
 # Prune daily-rotated worker usage logs older than 30 days (per-turn token+cost data)
-5 0 * * * find /tmp -maxdepth 1 -name 'worker-*-usage-*.jsonl' -mtime +30 -delete 2>/dev/null
+5 0 * * * find /home/cp/logs -maxdepth 1 -name 'worker-*-usage-*.jsonl' -mtime +30 -delete 2>/dev/null
+
+# Cap ~/logs growth: any log over 20MB keeps its most recent 5MB
+10 0 * * * for f in /home/cp/logs/*.log /home/cp/logs/*.jsonl; do [ -f "$f" ] && [ "$(stat -c '\%s' "$f")" -gt 20971520 ] && tail -c 5242880 "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done 2>/dev/null
+
+# Snapshot /tmp agent + webhook logs to reboot-safe storage every 6h (a reboot wipes /tmp and all operational history with it — caught 2026-07-09 audit)
+15 */6 * * * mkdir -p /home/cp/logs/tmp-snapshots && cp -f /tmp/agent-*.log /tmp/telegram-webhook.log /tmp/collect.log /home/cp/logs/tmp-snapshots/ 2>/dev/null
 
 # Prune raw pi request payloads older than 14 days (set by run-worker.sh via PI_LOG_REQUESTS)
 6 0 * * * find /tmp/pi-requests -mindepth 1 -mtime +14 -delete 2>/dev/null
