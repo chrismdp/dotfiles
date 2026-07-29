@@ -12,14 +12,7 @@
 ## Credential Safety
 
 - **Never ask for passwords directly.** When iCloud, Apple, or other credential-dependent operations are needed, write a script the user runs interactively in their own terminal. Passwords must never pass through the conversation.
-- **Secrets live in 1Password; `~/.secret_env` is SELF-GENERATING — never put resolved secret values in it.** It is a 3-line bootstrap that, when sourced, loads everything live:
-  ```sh
-  export OP_SERVICE_ACCOUNT_TOKEN=<token>        # the ONE secret op can't generate (op's own auth) — the only literal value in this file
-  source <(op inject -i "$HOME/.secret_env.tpl") # resolves every other secret from 1Password "AI Agent" via the template
-  ```
-  Source of truth is the 1Password "AI Agent" vault, referenced by `~/.secret_env.tpl` (`{{ op://AI Agent/<Item>/<Field> }}` placeholders). **To add a secret: just add an `export NAME="{{ op://AI Agent/Item/Field }}"` line to `~/.secret_env.tpl`** — the next source of `~/.secret_env` picks it up automatically; there is NO regenerate step and no static file. The file is `chmod 400` (read-only) to block accidental clobbering. To rotate the SA token: `chmod +w ~/.secret_env`, edit the `OP_SERVICE_ACCOUNT_TOKEN=` line, `chmod 400` back (Chris does this — keys never pass through chat). Verify: `env -i bash -c '. ~/.secret_env; op whoami >/dev/null && echo ok'`. **Never write resolved `export NAME=value` lines into `~/.secret_env`** (a stray `op inject -o ~/.secret_env` or a hand-appended export) — it stops being self-generating and silently goes stale / drops the SA token (this muted all six agent bots on 2026-06-04). **Note: `.secret_env` runs `op inject` on every source**, and `send.sh`/`agent-dispatch` source it per call — so high-frequency paths make a 1Password API call each time; watch for latency / rate-limits.
-- **A live shell/process keeps its OLD env after a key rotates.** The running Claude Code process (and every bash subshell it spawns) inherits the env it launched with — regenerating `~/.secret_env` does NOT update an already-running process. Diagnose a stale key by comparing `echo ${VAR: -4}` in the bash tool vs a fresh `env -i bash -c '. ~/.secret_env; ...'`. The durable fix (1Password + template + regenerate) covers future shells and cron; the running session needs the value passed inline.
-- **Keys baked into build artifacts are a trap — check the artifact, not just the env.** Some tools snapshot a secret into a built file at build time and never re-read the env, so after a key rotation they keep using the stale key and fail in misleading ways. (leann did exactly this — baked the OpenAI key into its index; it has since been **removed**, 2026-06-04, see vault CLAUDE.md. The general principle stands for any future indexer/build tool, incl. Trove: if auth fails after a rotation, look for a cached key inside the build output.)
+- **Secrets live in 1Password; `~/.secret_env` is self-generating — never write resolved secret values into it** (a stray `op inject -o` or hand-appended export makes it silently go stale; that muted all six agent bots on 2026-06-04). To add a secret, add an `op://` line to `~/.secret_env.tpl` — there is no regenerate step. Load `/secrets` for the full anatomy, SA-token rotation, and stale-key diagnosis (live shells and baked build artifacts keep old keys after rotation).
 
 ## Communication Style
 
@@ -89,7 +82,7 @@ When working with skills (creating, editing, updating, reviewing SKILL.md files)
 - **Always use existing CLI commands before constructing inline Python.** Skills provide CLI scripts (xero_api.py, monzo_api.py, etc.) — use their subcommands rather than importing functions and writing throwaway scripts. Inline Python leads to repeated errors (wrong import names, wrong data structures).
 - **If a CLI command is missing, add it to the script** rather than working around it with inline code. A reusable command beats a one-off script every time.
 - **Verify CLI commands before embedding them in persistent output** (slides, training content, blog posts, documentation). Run `--help` or a dry-run to confirm the subcommand, flag names, and argument order are current. Commands copied from older slide decks, PDFs, or notes are especially suspect — verify, don't copy. Stale commands shipped on slides or in training are demo failures waiting to happen.
-- **Before running a `gog`/`gws` command (Docs, Sheets, Drive, Slides, Gmail, Calendar), load the `/gws` skill.** All command quirks and confirmed-broken commands live there — improvised flags from memory are how past auth and data mishaps happened.
+- **Before running a `gog`/`gws` command (Docs, Sheets, Drive, Slides, Gmail, Calendar), load the `/gws` skill.** All command quirks and confirmed-broken commands live there. This includes any `gog auth` scope change or auth error — the skill's `references/oauth-reauth.md` has the playbook, and improvising it once killed auth for all services (2026-06-10).
 
 ## Personal Scheduling Rules
 
@@ -109,10 +102,6 @@ When working with skills (creating, editing, updating, reviewing SKILL.md files)
 
 - **Perplexity MCP as fallback**: When WebFetch returns a 403 or other access error, retry using the Perplexity MCP tools (`perplexity_ask` or `perplexity_search`) to fetch and synthesise the content. Perplexity can access pages that block direct fetching.
 - **Perplexity cost and usage**: See `/research` skill for the full cost hierarchy and rules. Never use `perplexity_research` (Deep Research) unless Chris explicitly asks.
-
-## gog OAuth re-auth (adding a scope/service)
-
-- **Never touch `gog auth` from memory.** Before adding a scope/service or diagnosing "something went wrong" / `invalid_rapt` / 400 auth errors, read `~/.claude/skills/gws/references/oauth-reauth.md` — it has the full playbook (request ONLY the new service, never the full `--services` list, never `--force-consent`), the 400-vs-post-consent diagnosis, and the poisoned-grant recovery procedure. Getting this wrong can kill auth for ALL services (~6 failed attempts on 2026-06-10).
 
 ## 1Password CLI (op)
 
