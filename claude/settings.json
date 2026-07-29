@@ -20,14 +20,9 @@
       "Read(~/**)",
       "Grep(/home/cp/**)",
       "Grep(~/**)",
-      "Glob(/home/cp/**)",
-      "Glob(~/**)",
       "Read(/tmp/**)",
-      "Write(~/Pictures/**)",
       "Edit(~/Pictures/**)",
-      "Write(/tmp/**)",
       "Edit(/tmp/**)",
-      "Write(~/vault/blog/**)",
       "Edit(~/vault/blog/**)",
       "mcp__perplexity__perplexity_ask",
       "mcp__perplexity__perplexity_search",
@@ -152,14 +147,18 @@
     "lockbox@chrismdp": false,
     "ruby-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
   },
   "effortLevel": "high",
   "promptSuggestionEnabled": false,
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "autoCompactEnabled": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "model": "fable"
 }

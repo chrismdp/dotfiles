@@ -1,10 +1,6 @@
 **DS_Store
 *.netrwhist
 *un~
-mutt/cache/*
-mutt/temp/*
-mutt/certificates
-mutt/alias
 .vim/plugged/*
 .vim/autoload/plug.vim.old
 bin/terraform

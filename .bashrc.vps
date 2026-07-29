@@ -206,3 +206,4 @@ npx()  { __load_nvm; npx "$@"; }
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 export TZ="Europe/London"
+export EDITOR=vim

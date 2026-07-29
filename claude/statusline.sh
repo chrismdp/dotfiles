@@ -276,10 +276,12 @@ if [ -n "$project_dir" ]; then
     if [ -n "$ticket_dir" ] && [ -d "$ticket_dir" ]; then
         todo_count=$(grep -lE "^status: (todo|draft|pending)" "$ticket_dir"/*.md 2>/dev/null | wc -l)
         doing_count=$(grep -lE "^status: (doing|in-progress)" "$ticket_dir"/*.md 2>/dev/null | wc -l)
-        if [ "$todo_count" -gt 0 ] || [ "$doing_count" -gt 0 ]; then
+        qa_count=$(grep -lE "^status: qa" "$ticket_dir"/*.md 2>/dev/null | wc -l)
+        if [ "$todo_count" -gt 0 ] || [ "$doing_count" -gt 0 ] || [ "$qa_count" -gt 0 ]; then
             parts=()
             [ "$doing_count" -gt 0 ] && parts+=("${doing_count} doing")
             [ "$todo_count" -gt 0 ] && parts+=("${todo_count} todo")
+            [ "$qa_count" -gt 0 ] && parts+=("${qa_count} qa")
             joined=$(IFS=' · '; echo "${parts[*]}")
             ticket_section=" ${DIM}|${RESET} ⎘ ${joined}"
         fi

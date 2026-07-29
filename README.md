@@ -12,7 +12,6 @@ Then link up as many files as you want to use...
   cd ~
   ln -sf config_files/vimrc ~/.vimrc
   ln -sf config_files/vim ~/.vim
-  ln -sf config_files/irssi ~/.irssi
   ln -sf config_files/gvimrc ~/.gvimrc
   ln -sf config_files/ackrc ~/.ackrc
 </pre>
@@ -108,4 +107,4 @@ What's in each file:
 - **systemd/user/** - User systemd unit files (claude-worker template, voice-inbox).
 - **systemd/system/** - System-level systemd unit files (claude-inbox-watcher, telegram-webhook).
 - **nginx/sites-available/** - Nginx vhost config for `vps.chrismdp.com` (telegram-webhook + review board + voice inbox).
-- **crontab.vps** - VPS crontab. Install with `crontab ~/code/dotfiles/crontab.vps`.
+- **build-crontab.sh** - Assembles and installs the VPS crontab from `~/vault/crontab.vps` (base fragment) plus every `~/vault/agents/<name>/crontab` (per-agent fragments) — both live in the private vault repo, not here. Never `crontab ~/vault/crontab.vps` directly, it drops every agent's cron.
