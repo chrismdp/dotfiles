@@ -25,8 +25,7 @@
 
 - **Never use AskUserQuestion (multiple-choice prompts).** Pre-baked options stop Chris thinking and narrow his answer to whatever Claude already imagined. Ask open questions in plain prose instead, or — better — state your best guess and invite redirect ("I'm going to do X unless you'd rather Y"). The only exception is genuine binary confirmations where the option space is actually closed.
 - **Never proactively offer to /schedule a background agent.** Do not end replies with "Want me to /schedule…" or any variant. The harness's default behaviour suggests this for flag rollouts, soak windows, recurring sweeps, etc. — it is overridden globally. Only run `/schedule` when Chris explicitly asks for it. Suppress the offer even when the trigger conditions look perfect.
-- **When user hints at a location or source, dig deeper**: If user says "check X" or "it's in Y", persist in finding it rather than saying it doesn't exist. User expects resourcefulness.
-- **Exhaust search strategies before declaring "not found"**: Try at least 5 different approaches (different keywords, sender domains, date ranges, `has:attachment`, amount-based, broad terms) before saying something doesn't exist. User expects thorough searching.
+- **When user hints at a location or source, dig deeper**: If user says "check X" or "it's in Y", persist in finding it rather than saying it doesn't exist. Before declaring "not found", vary the search angle (different keywords, sender domains, date ranges, `has:attachment`, amounts) — a single failed query is not evidence of absence.
 - **Concise requests expect full execution**: Short directives like "pull X from Y" mean figure out the how - don't ask for clarification unless genuinely stuck.
 - **Consolidate related information**: When preparing for meetings/calls, synthesize research into a single structured document with clear headers rather than spreading across multiple responses.
 - **Prefer stateless over stateful solutions**: When building automation, use existing state (e.g., git diff between commits) rather than introducing new tracking files. Simpler is better.
@@ -70,11 +69,11 @@ This is a core, cross-project preference — apply it on every codebase, not jus
 
 ## Content Creation
 
-**CRITICAL**: When producing ANY content (blog posts, LinkedIn posts, newsletters, emails, proposals, webinar copy), ALWAYS load the writing-style skill first using `/writing-style`. This applies even for short pieces. AI-generated content always contains slop patterns that need the style guide to avoid.
+When producing content (blog posts, LinkedIn posts, newsletters, emails, proposals, webinar copy), load `/writing-style` first, even for short pieces — content drafted without it drifts into AI slop patterns the style guide exists to catch.
 
 ## Skills
 
-**CRITICAL**: When doing ANY work with skills (creating, editing, updating, reviewing SKILL.md files), ALWAYS load the `/skill` skill first. It contains the canonical schema, conventions, and patterns for skill files.
+When working with skills (creating, editing, updating, reviewing SKILL.md files), load both the official `skill-creator` skill (owns the authoring/eval/description-optimisation workflow) and `/skill` (owns local conventions — locations, frontmatter mechanics, dynamic context injection, script ownership, gotchas) first.
 
 - **Always search BOTH skill locations**: Skills live in `~/.claude/skills/` (global) AND `.claude/skills/` (project). When looking for a skill, search both directories. Global skills won't appear in the project tree.
 - **Sub-agents CAN use the Skill tool** (tested and confirmed). When dispatching agents for tasks with relevant skills, tell them to load those skills first. Don't trust claude-code-guide claims about tool restrictions without empirical testing.
@@ -86,7 +85,7 @@ This is a core, cross-project preference — apply it on every codebase, not jus
 - **Always use existing CLI commands before constructing inline Python.** Skills provide CLI scripts (xero_api.py, monzo_api.py, etc.) — use their subcommands rather than importing functions and writing throwaway scripts. Inline Python leads to repeated errors (wrong import names, wrong data structures).
 - **If a CLI command is missing, add it to the script** rather than working around it with inline code. A reusable command beats a one-off script every time.
 - **Verify CLI commands before embedding them in persistent output** (slides, training content, blog posts, documentation). Run `--help` or a dry-run to confirm the subcommand, flag names, and argument order are current. Commands copied from older slide decks, PDFs, or notes are especially suspect — verify, don't copy. Stale commands shipped on slides or in training are demo failures waiting to happen.
-- **Before running ANY `gog`/`gws` command (Docs, Sheets, Drive, Slides, Gmail, Calendar), load the `/gws` skill.** All command quirks and confirmed-broken commands live there — do not improvise flags from memory.
+- **Before running a `gog`/`gws` command (Docs, Sheets, Drive, Slides, Gmail, Calendar), load the `/gws` skill.** All command quirks and confirmed-broken commands live there — improvised flags from memory are how past auth and data mishaps happened.
 
 ## Personal Scheduling Rules
 
@@ -97,7 +96,7 @@ This is a core, cross-project preference — apply it on every codebase, not jus
 
 - **Never use project-based auto memory** (`~/.claude/projects/*/memory/`). Chris runs Claude across multiple machines so project memory doesn't sync. Store all persistent memories in the vault itself (concept notes, CLAUDE.md files, or skill files).
 - **System rules go in skills/CLAUDE.md, not memory**: Rules about how the project system, agent loops, or workflows operate belong in the relevant skill file or CLAUDE.md. Auto-memory is for user context, approach feedback, and external references — not for system architecture or routing logic.
-- **When corrected or asked to remember**: If user corrects your approach, disagrees with a choice, or says "remember this" / "note this" / "learn this", write the lesson to the appropriate file before continuing. Pick the right target: skill SKILL.md for skill-specific lessons, project CLAUDE.md for project patterns, global CLAUDE.md for universal preferences. Only capture the reusable pattern, not the specific situation. Don't ask — just do it and briefly mention what you wrote. NEVER just acknowledge verbally.
+- **When corrected or asked to remember**: If user corrects your approach, disagrees with a choice, or says "remember this" / "note this" / "learn this", write the lesson to the appropriate file before continuing. Pick the right target: skill SKILL.md for skill-specific lessons, project CLAUDE.md for project patterns, global CLAUDE.md for universal preferences. Only capture the reusable pattern, not the specific situation. Don't ask — just do it and briefly mention what you wrote; a verbal acknowledgement alone loses the lesson.
 - **Verify bulk operations by reading results**: After bulk file changes (sed, Python replace, migrations), always read a sample file's actual content to confirm the change took effect. Don't trust command output or exit codes alone — read the file.
 - **YAML frontmatter: parse, don't string-replace**: When modifying YAML frontmatter in bulk, split on `---` delimiters and only modify the frontmatter section. Never use whole-file string replace — body text often contains the same strings as frontmatter and will get corrupted.
 - **Renumber numbered lists after insertion or deletion**: When inserting or removing items in a markdown numbered list (steps, ordered enumeration), renumber the remaining items in the same edit. Numbers don't auto-adjust — verify the sequence is contiguous before completing the tool call. Two consecutive items numbered "5." is a bug, not a stylistic quirk.

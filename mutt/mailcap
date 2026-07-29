@@ -1,8 +1,0 @@
-text/html; w3m -I %{charset} -T text/html; copiousoutput; print=~/.mutt/view_attachment.sh %s html
-
-image/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
-audio/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
-video/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
-text/*                  ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
-application/*            ; /usr/bin/qlmanage -p 2>/dev/null %s             ; copiousoutput
-
