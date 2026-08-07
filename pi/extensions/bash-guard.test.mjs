@@ -102,11 +102,11 @@ _setRunGogForTests(() =>
 assert.strictEqual(classifyCalendarEvent("c", "e").verdict, "solo", "own emails (case-insensitive) → solo");
 
 _setRunGogForTests(() =>
-  eventJson([{ email: "chris.p@rsons.org", self: true }, { email: "bobby.gilbert66@gmail.com" }]),
+  eventJson([{ email: "chris.p@rsons.org", self: true }, { email: "guest@ext.com" }]),
 );
 const shared = classifyCalendarEvent("c", "e");
 assert.strictEqual(shared.verdict, "shared", "external attendee → shared");
-assert.ok(shared.detail.includes("bobby.gilbert66@gmail.com"), "detail names the other attendee");
+assert.ok(shared.detail.includes("guest@ext.com"), "detail names the other attendee");
 
 _setRunGogForTests(() => eventJson([{ email: "chris.p@rsons.org", self: true }], { organizer: { email: "x@ext.com" } }));
 const externalOrganizer = classifyCalendarEvent("c", "e");
