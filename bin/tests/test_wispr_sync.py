@@ -5,7 +5,9 @@ is it called, does the vault already have it, what does the file look like —
 not the HTTP plumbing.
 """
 
+import json
 import sys
+import time
 import urllib.parse
 from pathlib import Path
 
@@ -292,6 +294,85 @@ class TestSyncBeforeAuthorisation:
 
         assert wispr_sync.sync() == 0
         assert "auth" in (tmp_path / "log").read_text()
+
+
+class TestBrokenSyncAlerts:
+    """Cron is the only thing watching this. If it silently stops, Chris finds
+    out weeks later via a transcript that never arrived."""
+
+    @pytest.fixture
+    def broken(self, tmp_path, monkeypatch):
+        sent = []
+        monkeypatch.setattr(wispr_sync, "LOG_FILE", tmp_path / "log")
+        monkeypatch.setattr(wispr_sync, "ALERT_FILE", tmp_path / "alert.json")
+        monkeypatch.setattr(wispr_sync, "TOKEN_FILE", tmp_path / "token.json")
+        monkeypatch.setattr(wispr_sync, "TRANSCRIPTS", tmp_path / "transcripts")
+        monkeypatch.setattr(wispr_sync, "notify", lambda message: sent.append(message))
+        (tmp_path / "token.json").write_text("{}")
+        return sent
+
+    def _fail_with(self, monkeypatch, error):
+        def boom():
+            raise error
+        monkeypatch.setattr(wispr_sync, "access_token", boom)
+
+    def test_pings_chris_when_the_token_can_no_longer_be_refreshed(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, SystemExit("Refresh failed"))
+        wispr_sync.sync()
+        assert len(broken) == 1
+        assert "wispr" in broken[0].lower()
+
+    def test_says_how_to_fix_it(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, SystemExit("Refresh failed"))
+        wispr_sync.sync()
+        assert "auth" in broken[0]
+
+    def test_pings_when_wispr_itself_is_unreachable(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, RuntimeError("connection reset"))
+        wispr_sync.sync()
+        assert len(broken) == 1
+
+    def test_does_not_ping_again_on_the_next_run(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, SystemExit("Refresh failed"))
+        wispr_sync.sync()
+        wispr_sync.sync()
+        assert len(broken) == 1
+
+    def test_pings_again_once_the_cooldown_has_passed(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, SystemExit("Refresh failed"))
+        wispr_sync.sync()
+        stale = {"alerted_at": time.time() - wispr_sync.ALERT_COOLDOWN - 1}
+        wispr_sync.ALERT_FILE.write_text(json.dumps(stale))
+        wispr_sync.sync()
+        assert len(broken) == 2
+
+    def test_says_so_when_it_starts_working_again(self, broken, monkeypatch):
+        self._fail_with(monkeypatch, SystemExit("Refresh failed"))
+        wispr_sync.sync()
+
+        monkeypatch.setattr(wispr_sync, "access_token", lambda: "token")
+        monkeypatch.setattr(wispr_sync, "Mcp", _StubMcp)
+        wispr_sync.sync()
+
+        assert len(broken) == 2
+        assert "again" in broken[1].lower() or "recovered" in broken[1].lower()
+
+    def test_stays_quiet_when_it_was_never_broken(self, broken, monkeypatch):
+        monkeypatch.setattr(wispr_sync, "access_token", lambda: "token")
+        monkeypatch.setattr(wispr_sync, "Mcp", _StubMcp)
+        wispr_sync.sync()
+        assert broken == []
+
+
+class _StubMcp:
+    def __init__(self, token):
+        pass
+
+    def connect(self):
+        pass
+
+    def call(self, tool, arguments):
+        return {"meetings": []}
 
 
 class TestTokenExpiry:

@@ -19,6 +19,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import unicodedata
@@ -40,6 +41,9 @@ TRANSCRIPTS = VAULT / "transcripts"
 CONFIG_DIR = Path.home() / ".config" / "wispr-sync"
 TOKEN_FILE = CONFIG_DIR / "token.json"
 STATE_FILE = CONFIG_DIR / "synced-meetings.txt"
+ALERT_FILE = CONFIG_DIR / "alert-state.json"
+SEND_SH = Path.home() / ".claude" / "skills" / "telegram" / "scripts" / "send.sh"
+ALERT_COOLDOWN = 6 * 3600
 LOG_FILE = Path.home() / "bin" / "sync-wispr-transcripts.log"
 
 LOCAL_TZ = ZoneInfo("Europe/London")
@@ -436,6 +440,49 @@ def fetch_transcript(mcp, meeting_id):
 
 # --- sync --------------------------------------------------------------------
 
+def notify(message):
+    """Tell Chris on Telegram, via Bella — she owns agent-ops health."""
+    subprocess.run(
+        ["bash", "-c",
+         f'source ~/.secret_env && "{SEND_SH}" --bot-var BELLA_BOT_TOKEN '
+         f'--source wispr-sync "$1"', "_", message],
+        capture_output=True, timeout=60,
+    )
+
+
+def _load_alert():
+    if not ALERT_FILE.exists():
+        return None
+    try:
+        return json.loads(ALERT_FILE.read_text())
+    except json.JSONDecodeError:
+        return None
+
+
+def should_alert(state, now=None):
+    now = time.time() if now is None else now
+    return not state or now - state.get("alerted_at", 0) >= ALERT_COOLDOWN
+
+
+def _alert_broken(reason):
+    state = _load_alert()
+    first_failure = state is None
+    if should_alert(state):
+        opener = "Wispr transcript sync has stopped working" if first_failure \
+            else "Wispr transcript sync is still down"
+        notify(f"{opener} — no meeting transcripts are reaching the vault.\n\n"
+               f"{reason}\n\nFix: run wispr-sync auth on the VPS.")
+        ALERT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        ALERT_FILE.write_text(json.dumps({"alerted_at": time.time(), "reason": reason}))
+
+
+def _alert_recovered():
+    if _load_alert() is None:
+        return
+    notify("Wispr transcript sync is working again — meetings are reaching the vault.")
+    ALERT_FILE.unlink(missing_ok=True)
+
+
 def log(message):
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with LOG_FILE.open("a") as fh:
@@ -449,6 +496,21 @@ def sync():
         log("Not authorised yet — run: ~/bin/wispr-sync auth")
         return 0
 
+    try:
+        written = _sync_once()
+    except (Exception, SystemExit) as exc:
+        # Cron is the only thing watching. A sync that dies quietly means
+        # transcripts stop arriving and nobody notices for weeks.
+        reason = f"{type(exc).__name__}: {exc}"
+        log(f"ERROR: {reason}")
+        _alert_broken(reason)
+        return 0
+
+    _alert_recovered()
+    return written
+
+
+def _sync_once():
     TRANSCRIPTS.mkdir(parents=True, exist_ok=True)
     now = datetime.now(timezone.utc)
     seen = load_state(STATE_FILE)
@@ -511,11 +573,7 @@ def main(argv):
     if command == "auth":
         authorise()
     elif command == "sync":
-        try:
-            sync()
-        except Exception as exc:  # cron: never spam stderr, always leave a trail
-            log(f"ERROR: {type(exc).__name__}: {exc}")
-            raise
+        sync()
     elif command == "status":
         status()
     else:
