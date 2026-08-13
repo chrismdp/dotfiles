@@ -64,9 +64,22 @@ This is a core, cross-project preference — apply it on every codebase, not jus
 
 - **When replacing references, check the source**: If content references something from another document (e.g. "recap from Session 1"), always read the source document to verify what was actually covered. Don't invent replacements based on what sounds right — check what's real.
 
-## Content Creation
+## Writing
 
-When producing content (blog posts, LinkedIn posts, newsletters, emails, proposals, webinar copy), load `/writing-style` first, even for short pieces — content drafted without it drifts into AI slop patterns the style guide exists to catch.
+**Plain language (ISO 24495-1) is the default for everything written, in every context** — docs, comments, commit messages, tickets, product copy, Slack replies, prompts and tool descriptions, not just "content". The standard defines plain language by its effect on the reader rather than by style, which turns "is this clear?" from taste into four questions with answers:
+
+1. **Relevant** — does it hold what the reader needs, and only that?
+2. **Findable** — can they locate it without reading everything?
+3. **Understandable** — will they get it on one read?
+4. **Usable** — can they act on it and get the right result?
+
+The fourth is the one that gets skipped, and it is invisible to proofreading: a text can be clear, correct and complete, and following it literally still produces the wrong outcome. Check it by following the instruction and seeing where you end up.
+
+This governs **clarity, not voice**. It does not flatten Chris's writing or make everything sound like a manual — a landing page and a personal essay are both better plain and should still sound like him.
+
+**For anything public or consumer-facing** (blog posts, LinkedIn, newsletters, emails, proposals, webinar copy, pricing and legal pages), load `/writing-style` **and** `/simple-english` first, even for short pieces. `/writing-style` owns how it sounds and catches the AI slop patterns; `/simple-english` owns whether it lands, and carries the checks. Drafting without them drifts into exactly what they exist to catch.
+
+**When a model is the reader** (tool descriptions, system prompts, `AGENTS.md`, skills), the same principles apply and `/simple-english` has the section on it. One rule from there is worth having in advance: **when a model appears to disobey an instruction, check whether obeying was possible before rewriting the words.** On 2026-08-13 a tool told the model to link a note to the person it names, and had no parameter that could create a person who was not already recorded. It read as the model ignoring a clear instruction for weeks. It was a document describing a capability that did not exist.
 
 ## Skills
 
@@ -83,6 +96,7 @@ When working with skills (creating, editing, updating, reviewing SKILL.md files)
 - **If a CLI command is missing, add it to the script** rather than working around it with inline code. A reusable command beats a one-off script every time.
 - **Verify CLI commands before embedding them in persistent output** (slides, training content, blog posts, documentation). Run `--help` or a dry-run to confirm the subcommand, flag names, and argument order are current. Commands copied from older slide decks, PDFs, or notes are especially suspect — verify, don't copy. Stale commands shipped on slides or in training are demo failures waiting to happen.
 - **Before running a `gog`/`gws` command (Docs, Sheets, Drive, Slides, Gmail, Calendar), load the `/gws` skill.** All command quirks and confirmed-broken commands live there. This includes any `gog auth` scope change or auth error — the skill's `references/oauth-reauth.md` has the playbook, and improvising it once killed auth for all services (2026-06-10).
+- **Never `export HOME` (or any path var pointing at real user data) to sandbox a test — and never `rm -rf` a variable that could resolve to it.** To exercise a CLI against a fake home, use `SANDBOX=$(mktemp -d)`, build the tree inside it, and set the var inline for the single command: `env HOME="$SANDBOX" ./tool cmd`. An exported HOME leaks into every later command in the script, and one unset or mistyped variable turns a cleanup line into wiping Chris's home directory. Prefer a fresh `mktemp -d` per run over deleting and recreating a fixed path. In Go/Python tests use the framework's scoped helper (`t.Setenv`, `monkeypatch.setenv`) — it restores automatically. Flagged by Chris 2026-08-07 when a verification script opened with `export HOME=$SP/fakehome` followed by `rm -rf "$HOME"`.
 
 ## Personal Scheduling Rules
 
