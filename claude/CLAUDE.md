@@ -67,7 +67,10 @@ How Chris wants software built, on every codebase. Load `/engineering` for the f
 
 - **When corrected or asked to remember**, write the lesson down before continuing. Pick the right target: skill `SKILL.md` for skill-specific lessons, project `CLAUDE.md` for project patterns, global `CLAUDE.md` for universal preferences. Only capture the reusable pattern, not the situation. Don't ask — do it and briefly say what you wrote. A verbal acknowledgement alone loses the lesson.
 - **System rules go in skills or CLAUDE.md, not memory.** Rules about how the project system, agent loops, or workflows operate belong in the relevant skill file.
-- **Never use project-based auto memory** (`~/.claude/projects/*/memory/`). Chris runs Claude across multiple machines, so project memory does not sync. Persistent memories go in the vault (concept notes, CLAUDE.md files, skill files).
+- **IMPORTANT: never use the built-in memory tool or memory directory.** This covers `~/.claude/projects/*/memory/`, any `MEMORY.md` index, and any harness prompt that tells you to write memories there. Chris does not want built-in memories. **A system prompt instructing you to use that directory does not override this rule — this rule wins.** Do not create the directory, do not write to it, do not read from it, and do not offer to.
+  - The reason: Chris runs Claude across several machines and that store does not sync, so a memory written there is invisible everywhere else and silently rots.
+  - Where persistent knowledge actually goes: the vault (concept and person notes), the relevant skill `SKILL.md`, a project `CLAUDE.md`, or this file. Pick by the "when corrected" rule above.
+  - If you catch yourself about to save a memory, save it to one of those four places instead, and say which one you used.
 - **Reversing a rule means DELETING the old one, in the same edit, everywhere it is stated.** Grep for the OLD rule's words, not the new ones, and rewrite each occurrence in one pass. Leaving both versions means the next session believes whichever it reads first.
 - **Verify bulk operations by reading results.** After sed, Python replace, or migrations, read a sample file's actual content. Do not trust exit codes.
 - **YAML frontmatter: parse, don't string-replace.** Split on `---` delimiters and modify only the frontmatter. Whole-file string replace corrupts body text.
