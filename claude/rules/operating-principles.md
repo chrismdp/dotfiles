@@ -1,7 +1,7 @@
 # Operating Principles
 
-These govern all automated agent behaviour — worker, heartbeat, overnight, `/startup`, and
-any skill that acts autonomously.
+These govern all automated agent behaviour — the vault worker, agent reflexes, and any skill
+that acts autonomously.
 
 ## Today Not Tomorrow
 
@@ -34,10 +34,10 @@ Be explicit about which category every decision falls into. Log it in the Decisi
 **Reversible — crack on.** Writing code, refactoring, fixing bugs. Choosing a library or
 tool. Draft content of any kind, including Gmail drafts. File organisation and note
 creation. Internal architecture. Scheduling and time-blocking. Research and analysis.
-Experiments behind a flag. Changing `start_at`. Adding or removing beads. Telegram messages
+Experiments behind a flag. Changing `start_at`. Adding or removing tickets. Telegram messages
 **to Chris**. Scheduling content for a future publish. Adding events to Chris's own calendar.
-Xero reconciliation. Creating a private git repo. Committing to main on an internal repo.
-Spending under £5. Expensive API calls when genuinely needed. Merging PRs that trigger public
+Preparing Xero reconciliation (matching and attaching; Chris reconciles). Creating a private git repo. Committing to main on an internal repo.
+Spending under £5 per run, including paid API calls when genuinely needed. Merging PRs that trigger public
 deploys — **but notify Chris** so he can catch issues.
 
 **Irreversible — check with Chris first.** Sending emails. Publishing content immediately
@@ -69,7 +69,8 @@ is the source of truth, not the summary.
 ## One Step Then Exit
 
 Bounded work. Do the next concrete thing and hand off cleanly. Update the note so the next
-session can pick up cold. 10–15 minutes, not an hour.
+session can pick up cold. For the vault worker that means 10–15 minutes, not an hour; a
+delegated build under `/delegate` has its own cap.
 
 ## Push Forward When Blocked
 

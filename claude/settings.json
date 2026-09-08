@@ -26,8 +26,7 @@
       "mcp__perplexity__perplexity_ask",
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
-      "mcp__perplexity__perplexity_reason",
-      "mcp__posthog__*"
+      "mcp__perplexity__perplexity_reason"
     ],
     "deny": [
       "AskUserQuestion"
@@ -35,7 +34,10 @@
     "ask": [
       "Bash(*lockbox-prompt*)",
       "Bash(gog gmail send:*)",
-      "Agent(lockbox:delegate)"
+      "Agent(lockbox:delegate)",
+      "mcp__claude_ai_Gmail__send_message",
+      "mcp__claude_ai_Gmail__reply",
+      "mcp__claude_ai_Gmail__forward"
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
@@ -186,5 +188,6 @@
       "**Org-specific CLIs**: gog / gws (Google Workspace), airskills (skill sync), xero_api.py, monzo_api.py, ynab-related scripts — routine under this vault's `scripts/` prefix",
       "**routine under ~/vault/ prefix**: vault note edits, project files under `projects/`, content under `content/`, and scripts under `scripts/` are routine working areas for this user"
     ]
-  }
+  },
+  "model": "claude-fable-5-1[1m]"
 }
