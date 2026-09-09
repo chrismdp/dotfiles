@@ -8,6 +8,7 @@ not the HTTP plumbing.
 import json
 import sys
 import time
+import urllib.error
 import urllib.parse
 from pathlib import Path
 
@@ -384,6 +385,42 @@ class TestTokenExpiry:
 
     def test_token_without_an_expiry_is_treated_as_expired(self):
         assert wispr_sync.needs_refresh({}, now=900) is True
+
+
+class TestAlertAdvice:
+    """The alert's "Fix:" line has to match the failure, or it sends whoever
+    reads it down the wrong path — a 503 once got answered with a re-auth."""
+
+    def http_error(self, code):
+        return urllib.error.HTTPError("https://api.wisprflow.ai/connect/mcp", code, "", {}, None)
+
+    def test_a_dead_wispr_server_means_wait_not_reauth(self):
+        hint = wispr_sync.fix_hint(self.http_error(503))
+        assert "unreachable" in hint
+        assert "retr" in hint
+        assert "auth" not in hint
+
+    def test_a_timeout_means_wait_not_reauth(self):
+        hint = wispr_sync.fix_hint(TimeoutError("The read operation timed out"))
+        assert "unreachable" in hint
+        assert "auth" not in hint
+
+    def test_a_network_failure_means_wait_not_reauth(self):
+        hint = wispr_sync.fix_hint(urllib.error.URLError("Name or service not known"))
+        assert "unreachable" in hint
+        assert "auth" not in hint
+
+    def test_a_rejected_token_means_reauth(self):
+        assert "wispr-sync auth" in wispr_sync.fix_hint(self.http_error(401))
+
+    def test_a_failed_refresh_means_reauth(self):
+        exc = SystemExit("Refresh failed (invalid_grant). Run: ~/bin/wispr-sync auth")
+        assert "wispr-sync auth" in wispr_sync.fix_hint(exc)
+
+    def test_an_unknown_failure_points_at_the_log(self):
+        hint = wispr_sync.fix_hint(RuntimeError("search_meetings: boom"))
+        assert "log" in hint
+        assert "auth" not in hint
 
 
 if __name__ == "__main__":

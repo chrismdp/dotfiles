@@ -464,14 +464,32 @@ def should_alert(state, now=None):
     return not state or now - state.get("alerted_at", 0) >= ALERT_COOLDOWN
 
 
-def _alert_broken(reason):
+def fix_hint(exc):
+    """What to do about this failure. Advice that does not match the cause
+    sends whoever reads the alert down the wrong path — a transient 503 was
+    once answered with a re-auth."""
+    if isinstance(exc, urllib.error.HTTPError):
+        if exc.code in (401, 403):
+            return "Wispr rejected the token. Fix: run ~/bin/wispr-sync auth on the VPS."
+        if exc.code >= 500:
+            return (f"Wispr's server is unreachable (HTTP {exc.code}). Nothing to fix here: "
+                    "the sync retries every 20 minutes and will report when it recovers.")
+    if isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError)):
+        return ("Wispr is unreachable from the VPS. Nothing to fix here: the sync retries "
+                "every 20 minutes and will report when it recovers.")
+    if isinstance(exc, SystemExit):
+        return "The token could not be refreshed. Fix: run ~/bin/wispr-sync auth on the VPS."
+    return f"Unexpected failure. Check the log: {LOG_FILE}"
+
+
+def _alert_broken(reason, exc):
     state = _load_alert()
     first_failure = state is None
     if should_alert(state):
         opener = "Wispr transcript sync has stopped working" if first_failure \
             else "Wispr transcript sync is still down"
         notify(f"{opener} — no meeting transcripts are reaching the vault.\n\n"
-               f"{reason}\n\nFix: run wispr-sync auth on the VPS.")
+               f"{reason}\n\n{fix_hint(exc)}")
         ALERT_FILE.parent.mkdir(parents=True, exist_ok=True)
         ALERT_FILE.write_text(json.dumps({"alerted_at": time.time(), "reason": reason}))
 
@@ -503,7 +521,7 @@ def sync():
         # transcripts stop arriving and nobody notices for weeks.
         reason = f"{type(exc).__name__}: {exc}"
         log(f"ERROR: {reason}")
-        _alert_broken(reason)
+        _alert_broken(reason, exc)
         return 0
 
     _alert_recovered()
