@@ -30,7 +30,16 @@ const PREFIX = "💭 ";
 const SEP = "\n\n";
 
 // Banned-word handling lives in the language-guard.ts extension (it regenerates any
-// reply that uses one), so this bubble renders the message verbatim.
+// reply that uses one). Vault wikilinks are flattened at this boundary too, the same
+// way send.sh does — this extension posts straight to the Telegram API and never
+// passes through send.sh, so without the flatten a reply can carry raw [[target]]
+// markup to Chris (2026-09-12: bella replied with a live [[2026-W37]]).
+
+function flattenWikilinks(s: string): string {
+	return s
+		.replace(/\[\[([^\]|\n]+)\|([^\]\n]+)\]\]/g, "$2")
+		.replace(/\[\[([^\]\n]+)\]\]/g, "$1");
+}
 
 function textOf(message: unknown): string {
 	const c = (message as { content?: unknown })?.content;
@@ -61,7 +70,7 @@ function looksLikeInternalEditPacket(text: string): boolean {
 	return hasFilePath && hasOld && hasNew;
 }
 
-export default function (pi: ExtensionAPI) {
+function streamExtension(pi: ExtensionAPI) {
 	if (process.env.PI_TG_STREAM !== "1") return; // gated off — inert
 
 	const botVar = process.env.PI_TG_BOT_VAR || "";
@@ -76,6 +85,7 @@ export default function (pi: ExtensionAPI) {
 	let bubbleId: number | null = null;
 	let committed: string[] = [];
 	let pending: string | null = null;
+	let pendingControlEnd = false;  // last assistant message stripped to empty (NO_REPORT etc.)
 	let finalised = false;
 	// Serialise state mutations: message_end handlers and beforeExit can overlap, and
 	// the bubble state (id/text/pending) is shared. Chain each mutation so commits stay
@@ -121,6 +131,7 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	function renderMarkdown(s: string): string {
+		s = flattenWikilinks(s);
 		const pres: string[] = [];
 		const stashed = s.replace(/```(?:[\w+-]*\n)?([\s\S]*?)```/g, (_m, body) => {
 			pres.push(String(body));
@@ -174,11 +185,20 @@ export default function (pi: ExtensionAPI) {
 		if (bubbleId === null) {
 			const res = await tg("sendMessage", { chat_id: chatId, text: body, parse_mode: "HTML", disable_notification: true });
 			const id = res?.result?.message_id;
-			if (typeof id === "number") { bubbleId = id; return true; }
+			if (typeof id === "number") { bubbleId = id; writeState({ final_sent: false, bubble_id: id }); return true; }
 			return false;
 		}
 		const res = await tg("editMessageText", { chat_id: chatId, message_id: bubbleId, text: body, parse_mode: "HTML" });
 		return !!res;
+	}
+
+	async function abandonBubble(reason: string): Promise<void> {
+		if (finalised) return;
+		finalised = true;
+		try {
+			if (bubbleId !== null) await tg("deleteMessage", { chat_id: chatId, message_id: bubbleId });
+		} catch { /* best effort */ }
+		writeState({ final_sent: false, reason, bubble_id: bubbleId });
 	}
 
 	async function placeFinal(finalText: string): Promise<void> {
@@ -205,7 +225,18 @@ export default function (pi: ExtensionAPI) {
 		const msg = (event as { message?: { role?: string } }).message;
 		if (!msg || msg.role !== "assistant") return undefined;
 		const text = stripControlTokens(textOf(msg));
-		if (!text || looksLikeInternalEditPacket(text)) return undefined;
+		if (!text || looksLikeInternalEditPacket(text)) {
+			// The message was a control token (NO_REPORT/REACT) or an internal edit
+			// packet — mark this so beforeExit knows the run ended without a real
+			// answer and won't place a stale intermediate as the final.
+			if (text === "" && msg.content && Array.isArray(msg.content)) {
+				// Only control-token strips: the raw text was non-empty but stripped empty.
+				const raw = textOf(msg);
+				if (raw.trim()) pendingControlEnd = true;
+			}
+			return undefined;
+		}
+		pendingControlEnd = false;
 		// Lookahead while the run is active: commit the PREVIOUS pending into the bubble;
 		// hold THIS text as the candidate final. beforeExit places that candidate at the
 		// top of the same bubble once pi has no more work to do.
@@ -221,6 +252,16 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	process.once("beforeExit", () => {
+		// The run's final answer was a control token (NO_REPORT etc.) — the agent
+		// decided to stay silent. Don't place a stale intermediate text as the
+		// bubble's final; delete the progress bubble (if any) and tell the dispatcher
+		// so it does its normal NO_REPORT handling (reaction/silence).
+		if (pendingControlEnd) {
+			chain = chain
+				.then(() => abandonBubble("control_token"))
+				.catch(() => writeState({ final_sent: false, reason: "abandon_failed" }));
+			return;
+		}
 		if (finalised || pending === null) return;
 		chain = chain
 			.then(() => pending === null ? undefined : placeFinal(pending))
@@ -229,4 +270,29 @@ export default function (pi: ExtensionAPI) {
 				writeState({ final_sent: false, reason: "exception" });
 			});
 	});
+
+	// SIGTERM (stall-kill, timeout, preempt) and SIGINT: delete the in-flight bubble
+	// so a killed run doesn't leave a frozen half-thought visible in the chat. The
+	// retry or preempting run starts fresh without a ghost bubble. Exit with the
+	// conventional signal-exit code so the dispatcher classifies it correctly.
+	let dying = false;
+	function onSignal(_sig: string, code: number) {
+		if (dying) return;
+		dying = true;
+		void chain.then(() => abandonBubble("interrupted"));
+		// Exit after a short delay so the chain can flush. Don't throw through
+		// the promise chain — the test harness may stub process.exit.
+		setTimeout(() => process.exit(code), 100);
+	}
+	process.on("SIGTERM", () => onSignal("SIGTERM", 143));
+	process.on("SIGINT", () => onSignal("SIGINT", 130));
+
+	// Exported for tests: lets a test scenario force an abandon without sending
+	// a real signal or calling process.exit.
+	(streamExtension as unknown as Record<string, unknown>).__testAbandon = (reason: string) =>
+		void chain.then(() => abandonBubble(reason));
+
+	return streamExtension;
 }
+
+export default streamExtension;

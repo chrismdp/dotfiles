@@ -59,7 +59,7 @@ async function drive(events, opts = {}) {
 	process.env.PI_TG_STREAM_STATE = statePath;
 	const before = process.listeners("beforeExit");
 	const pi = fakePi();
-	ext(pi); // fresh closure state per scenario
+	const extResult = ext(pi); // fresh closure state per scenario
 	for (const e of events) await pi.fire(e);
 	if (opts.rejectFinalEdit) rejectNextEdit = true;
 	await flushBeforeExit();
@@ -67,7 +67,7 @@ async function drive(events, opts = {}) {
 	let state = null;
 	if (fs.existsSync(statePath)) state = JSON.parse(fs.readFileSync(statePath, "utf8"));
 	fs.rmSync(statePath, { force: true });
-	return { calls, state };
+	return { calls, state, extResult };
 }
 
 // --- assertions -------------------------------------------------------------
@@ -177,7 +177,20 @@ function check(name, fn) {
 	});
 }
 
-// 7b. HTML is escaped before sending via parse_mode=HTML.
+// 7b. Vault wikilinks are flattened before send, like send.sh — the extension posts
+// straight to Telegram and never passes through send.sh, so without this a reply can
+// carry raw [[target]] markup to Chris (2026-09-12 incident: [[2026-W37]] leaked).
+{
+	const { calls: c } = await drive([asst("working [[alpha]] link"), asst("filed in [[2026-W37]] and [[note|label]] here")]);
+	check("wikilinks flattened in working bubble and final", () => {
+		assert.equal(c.length, 2);
+		assert.ok(c[0].body.text.includes("working alpha link"));
+		assert.ok(!c[0].body.text.includes("[["));
+		assert.equal(c[1].body.text, "filed in 2026-W37 and label here");
+	});
+}
+
+// 7c. HTML is escaped before sending via parse_mode=HTML.
 {
 	const { calls: c } = await drive([asst("alpha <tag> & stuff"), asst("beta final")]);
 	check("HTML escaped in bubble", () => {
@@ -262,6 +275,58 @@ function check(name, fn) {
 		assert.equal(c[1].body.text, "final answer");
 		assert.ok(!c[1].body.text.includes("progress line"));
 		assert.ok(!c[1].body.text.includes("old_string"));
+	});
+}
+
+// 7i. A NO_REPORT final after working intermediates: the run is silent — the
+//     progress bubble is deleted, and state tells the dispatcher to handle silence
+//     (reaction/no-send) instead of placing a stale intermediate.
+{
+	const { calls: c, state } = await drive([asst("working note"), asst("two"), asst("NO_REPORT")]);
+	check("NO_REPORT final: bubble deleted, state final_sent false control_token", () => {
+		const methods = c.map((x) => x.method);
+		// bubble created for first intermediate, then deleted on silent end
+		assert.ok(methods.includes("sendMessage"), JSON.stringify(methods));
+		assert.ok(methods.includes("deleteMessage"), JSON.stringify(methods));
+		assert.equal(state.final_sent, false);
+		assert.equal(state.reason, "control_token");
+	});
+}
+
+// 7j. NO_REPORT with NO intermediates: no bubble is ever created, silence holds.
+{
+	const { calls: c, state } = await drive([asst("NO_REPORT")]);
+	check("NO_REPORT alone: no bubble, state final_sent false control_token", () => {
+		assert.equal(c.length, 0);
+		assert.equal(state.final_sent, false);
+		assert.equal(state.reason, "control_token");
+	});
+}
+
+// 7k. Signal interrupt mid-run: bubble deleted, state marks interrupted so the
+//     dispatch retry starts a fresh bubble without a ghost half-thought.
+//     Use __testAbandon to avoid fighting signal handlers left by previous tests.
+{
+	installFetch();
+	const before = process.listeners("beforeExit");
+	const statePath = path.join(os.tmpdir(), `telegram-stream-test-${process.pid}-sig.json`);
+	process.env.PI_TG_STREAM_STATE = statePath;
+	const pi = fakePi();
+	const fn = ext(pi);
+	await pi.fire(asst("first thought"));
+	await pi.fire(asst("second thought"));
+	// simulate SIGTERM cleanup via the test hook
+	await fn.__testAbandon("interrupted");
+	await new Promise((resolve) => setTimeout(resolve, 50));
+	for (const l of process.listeners("beforeExit")) if (!before.includes(l)) process.removeListener("beforeExit", l);
+	let st = null;
+	if (fs.existsSync(statePath)) st = JSON.parse(fs.readFileSync(statePath, "utf8"));
+	fs.rmSync(statePath, { force: true });
+	check("SIGTERM: bubble deleted for interrupt, state reason interrupted", () => {
+		const methods = calls.map((x) => x.method);
+		assert.ok(methods.includes("deleteMessage"), JSON.stringify(methods));
+		assert.equal(st.final_sent, false);
+		assert.equal(st.reason, "interrupted");
 	});
 }
 
