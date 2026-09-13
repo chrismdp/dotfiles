@@ -181,12 +181,15 @@ function check(name, fn) {
 // straight to Telegram and never passes through send.sh, so without this a reply can
 // carry raw [[target]] markup to Chris (2026-09-12 incident: [[2026-W37]] leaked).
 {
-	const { calls: c } = await drive([asst("working [[alpha]] link"), asst("filed in [[2026-W37]] and [[note|label]] here")]);
+	const { calls: c, state } = await drive([asst("working [[alpha]] link"), asst("filed in [[2026-W37]] and [[note|label]] here")]);
 	check("wikilinks flattened in working bubble and final", () => {
 		assert.equal(c.length, 2);
 		assert.ok(c[0].body.text.includes("working alpha link"));
 		assert.ok(!c[0].body.text.includes("[["));
 		assert.equal(c[1].body.text, "filed in 2026-W37 and label here");
+	});
+	check("final state records post-sanitisation wikilink count", () => {
+		assert.equal(state.sent_wikilinks, 0);
 	});
 }
 

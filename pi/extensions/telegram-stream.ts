@@ -41,6 +41,10 @@ function flattenWikilinks(s: string): string {
 		.replace(/\[\[([^\]\n]+)\]\]/g, "$1");
 }
 
+function wikilinkCount(s: string): number {
+	return (s.match(/\[\[[^\]\n]+\]\]/g) || []).length;
+}
+
 function textOf(message: unknown): string {
 	const c = (message as { content?: unknown })?.content;
 	if (typeof c === "string") return c;
@@ -87,6 +91,7 @@ function streamExtension(pi: ExtensionAPI) {
 	let pending: string | null = null;
 	let pendingControlEnd = false;  // last assistant message stripped to empty (NO_REPORT etc.)
 	let finalised = false;
+	let sentWikilinks = 0;          // accepted Telegram bodies, after rendering/sanitisation
 	// Serialise state mutations: message_end handlers and beforeExit can overlap, and
 	// the bubble state (id/text/pending) is shared. Chain each mutation so commits stay
 	// ordered and never race.
@@ -110,6 +115,7 @@ function streamExtension(pi: ExtensionAPI) {
 				process.stderr.write(`[telegram-stream] ${method} rejected: ${data.description || "unknown"}\n`);
 				return null;
 			}
+			if (typeof body.text === "string") sentWikilinks += wikilinkCount(body.text);
 			return data as { result?: { message_id?: number } };
 		} catch (e) {
 			process.stderr.write(`[telegram-stream] ${method} failed: ${(e as Error).message}\n`);
@@ -212,12 +218,12 @@ function streamExtension(pi: ExtensionAPI) {
 		if (bubbleId === null) {
 			const res = await tg("sendMessage", { chat_id: chatId, text: body, parse_mode: "HTML", disable_notification: true });
 			const id = res?.result?.message_id;
-			if (typeof id === "number") { bubbleId = id; writeState({ final_sent: true, bubble_id: id, mode: "send" }); return; }
+			if (typeof id === "number") { bubbleId = id; writeState({ final_sent: true, bubble_id: id, mode: "send", sent_wikilinks: sentWikilinks }); return; }
 			writeState({ final_sent: false, reason: "send_failed" });
 			return;
 		}
 		const res = await tg("editMessageText", { chat_id: chatId, message_id: bubbleId, text: body, parse_mode: "HTML" });
-		if (res) writeState({ final_sent: true, bubble_id: bubbleId, mode: "edit" });
+		if (res) writeState({ final_sent: true, bubble_id: bubbleId, mode: "edit", sent_wikilinks: sentWikilinks });
 		else writeState({ final_sent: false, reason: "edit_failed", bubble_id: bubbleId });
 	}
 
