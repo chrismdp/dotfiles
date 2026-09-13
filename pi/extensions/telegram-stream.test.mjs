@@ -293,6 +293,8 @@ function check(name, fn) {
 		assert.ok(methods.includes("deleteMessage"), JSON.stringify(methods));
 		assert.equal(state.final_sent, false);
 		assert.equal(state.reason, "control_token");
+		assert.equal(typeof state.bubble_id, "number");
+		assert.equal(state.sent_wikilinks, 0);
 	});
 }
 

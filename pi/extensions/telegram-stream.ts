@@ -99,7 +99,12 @@ function streamExtension(pi: ExtensionAPI) {
 
 	function writeState(data: Record<string, unknown>): void {
 		if (!statePath) return;
-		try { fs.writeFileSync(statePath, JSON.stringify({ ts: new Date().toISOString(), ...data })); }
+		const boundary = {
+			sent_wikilinks: sentWikilinks,
+			...(bubbleId === null ? {} : { bubble_id: bubbleId }),
+			...data,
+		};
+		try { fs.writeFileSync(statePath, JSON.stringify({ ts: new Date().toISOString(), ...boundary })); }
 		catch { /* best effort only */ }
 	}
 
