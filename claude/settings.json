@@ -55,26 +55,25 @@
             "async": true
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#❖ }\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention pre-tool"
           }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◈ ${clean}\"; } >/dev/null 2>&1; true"
-          }
-        ]
+        ],
+        "matcher": ".*"
       }
     ],
     "PostToolUse": [
@@ -89,35 +88,35 @@
         ]
       },
       {
-        "matcher": "AskUserQuestion",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#◈ }\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
-        ]
+        ],
+        "matcher": ".*"
       }
     ],
     "Notification": [
       {
-        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
-        ]
+        ],
+        "matcher": "permission_prompt|idle_prompt|elicitation_dialog"
       }
     ],
     "PermissionRequest": [
       {
-        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
-        ]
+        ],
+        "matcher": ".*"
       }
     ],
     "Stop": [
@@ -125,7 +124,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◉ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -135,9 +134,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
         ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+          }
+        ],
+        "matcher": ".*"
       }
     ]
   },

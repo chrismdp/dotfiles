@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# One suffix means that the assistant needs input or has finished its reply.
+set -u
+
+state=${1:-clear}
+pane=${TMUX_PANE:-}
+payload='{}'
+if [[ -z $pane || $state == pre-tool ]]; then
+    payload=$(cat)
+fi
+
+# Codex's shared server has no tmux environment. Match its hook directory.
+if [[ -z $pane ]]; then
+    cwd=$(jq -r '.cwd // empty' <<< "$payload")
+    [[ -n $cwd ]] || exit 0
+    mapfile -t panes < <(
+        tmux list-panes -a -F $'#{pane_id}\t#{pane_current_path}' 2>/dev/null |
+            while IFS=$'\t' read -r candidate directory; do
+                [[ $directory == "$cwd" ]] && printf '%s\n' "$candidate"
+            done
+    )
+    [[ ${#panes[@]} == 1 ]] || exit 0
+    pane=${panes[0]}
+fi
+
+if [[ $state == pre-tool ]]; then
+    tool=$(jq -r '.tool_name // ""' <<< "$payload")
+    case "$tool" in
+        AskUserQuestion|*request_user_input|*request_user_input_async) state=waiting ;;
+        *) state=clear ;;
+    esac
+fi
+
+{
+    name=$(tmux display-message -p -t "$pane" '#W') || exit 0
+    # Remove the old prefixes and any existing attention suffix.
+    while [[ $name == '◉ '* || $name == '◈ '* || $name == '❖ '* ]]; do
+        name=${name#? }
+    done
+    while [[ $name == *' ❖' ]]; do
+        name=${name% ❖}
+    done
+    if [[ $state == waiting ]]; then
+        tmux set-window-option -t "$pane" automatic-rename off
+        name+=' ❖'
+    fi
+    tmux rename-window -t "$pane" "$name"
+} >/dev/null 2>&1
+exit 0
