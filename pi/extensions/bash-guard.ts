@@ -44,7 +44,7 @@ const evidenceTamperPatterns: RegExp[] = [
 
 const askPatterns: RegExp[] = [
   // ── Email sending ──
-  /\bgog\s+gmail\s+send\b/,
+  /\bgog\s+gmail\s+send(?=$|[\s;&|()<>])/,
   /\bgog\s+gmail\s+drafts?\s+send\b/,
   /\bgws\s+gmail\s+users\s+messages\s+send\b/,
 

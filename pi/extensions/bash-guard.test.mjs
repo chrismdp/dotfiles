@@ -241,6 +241,16 @@ assert.strictEqual(res, undefined, "quoted route prose mentioning evidence logs 
 
 // non-calendar commands unaffected
 assert.strictEqual(await pi.fire(bash("ls -la"), headless), undefined, "benign command passes");
+assert.strictEqual(
+  await pi.fire(
+    bash("source ~/.secret_env && gog gmail send-as list --account chris.p@rsons.org --json | jq '.sendAs'"),
+    headless,
+  ),
+  undefined,
+  "read-only Gmail send-as settings lookup passes",
+);
+res = await pi.fire(bash("gog gmail send --to a@example.com --subject hi"), headless);
+assert.strictEqual(res?.block, true, "standalone Gmail send remains protected");
 res = await pi.fire(bash("rm -rf /tmp/x"), tty("Yes — let it run"));
 assert.strictEqual(res?.block, true, "destructive rm still hard-blocked");
 
