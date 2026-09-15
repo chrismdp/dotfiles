@@ -57,6 +57,26 @@
             "cacheRead": 0.018,
             "cacheWrite": 0
           }
+        },
+        {
+          "id": "deepseek/deepseek-v4.1-flash",
+          "name": "DeepSeek: DeepSeek V4.1 Flash",
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1048576,
+          "maxTokens": 384000,
+          "reasoning": true,
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true
+          },
+          "cost": {
+            "input": 0.15,
+            "output": 0.6,
+            "cacheRead": 0.003,
+            "cacheWrite": 0
+          }
         }
       ],
       "modelOverrides": {
