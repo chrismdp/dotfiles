@@ -72,9 +72,9 @@
             "supportsReasoningEffort": true
           },
           "cost": {
-            "input": 0.15,
-            "output": 0.6,
-            "cacheRead": 0.003,
+            "input": 0.3,
+            "output": 1.2,
+            "cacheRead": 0.006,
             "cacheWrite": 0
           }
         }
