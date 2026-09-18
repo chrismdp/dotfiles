@@ -27,6 +27,19 @@ fi
 ln -s "${DOTFILES_PI}/models.json" "${PI_AGENT}/models.json"
 echo "  ✓ models.json"
 
+# ---- themes: every *.json in dotfiles, symlinked into the themes dir ----
+mkdir -p "${PI_AGENT}/themes"
+for src in "${DOTFILES_PI}"/themes/*.json; do
+    [ -e "${src}" ] || continue
+    name="$(basename "${src}")"
+    target="${PI_AGENT}/themes/${name}"
+    if [ -L "${target}" ] || [ -f "${target}" ]; then
+        rm -f "${target}"
+    fi
+    ln -s "${src}" "${target}"
+    echo "  ✓ themes/${name}"
+done
+
 # ---- agents/task.md ----
 if [ -L "${PI_AGENT}/agents/task.md" ] || [ -f "${PI_AGENT}/agents/task.md" ]; then
     rm -f "${PI_AGENT}/agents/task.md"

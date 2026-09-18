@@ -1,10 +1,14 @@
 {
-  "lastChangelogVersion": "0.76.0",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "lastChangelogVersion": "0.85.1",
+  "defaultProvider": "openrouter",
+  "defaultModel": "z-ai/glm-5.3-flash",
   "hideThinkingBlock": true,
   "defaultThinkingLevel": "high",
   "packages": [
-    "npm:pi-schedule-prompt"
-  ]
+    "npm:pi-schedule-prompt",
+    "git:github.com/MasuRii/pi-tool-display@91cef7580078371f8dc49a8607222807ad6a424d"
+  ],
+  "theme": "gruvbox",
+  "quietStartup": false,
+  "tuiMode": "regular"
 }
