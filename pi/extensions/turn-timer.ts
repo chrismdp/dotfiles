@@ -1,16 +1,16 @@
 /**
- * Turn timer — right-justified on a dim line below the editor, after one
+ * Turn timer — right-justified on a dim line above the editor, after one
  * blank line of space.
  *
  *   - While pi works:  "⧗ 1m 12s"                          (live)
  *   - While idle:      "⧗ finished 14:32 · took 3m 12s"    (stays until next run)
  *
  * Clock semantics: starts on the first agent_start of a run; stops only on
- * agent_settled when the run is truly over — internal per-round settles
- * mid-turn don't stop it.
+ * agent_settled when the session is idle. A settled handler in another
+ * extension can start more work before ours runs.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { visibleWidth } from "@earendil-works/pi-tui";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 const WIDGET_ID = "turn-timer";
 
@@ -48,13 +48,13 @@ export default function (pi: ExtensionAPI) {
 		}
 	};
 
-	/** One blank line, then the timer right-justified to the terminal width. */
-	const lines = (width: number | undefined): string[] => {
+	/** Pi adds the blank line before the above-editor widgets. */
+	const lines = (width: number): string[] => {
 		const text = timerText();
 		if (!text) return [];
-		const w = width ?? 80;
-		const pad = Math.max(0, w - visibleWidth(text));
-		return ["", " ".repeat(pad) + text];
+		const clipped = truncateToWidth(text, width, "");
+		const pad = Math.max(0, width - visibleWidth(clipped));
+		return [" ".repeat(pad) + clipped];
 	};
 
 	const setWidget = (ctx: import("@earendil-works/pi-coding-agent").ExtensionContext) => {
@@ -63,7 +63,7 @@ export default function (pi: ExtensionAPI) {
 			(_tui, theme) => {
 				requestRender = () => _tui.requestRender();
 				return {
-					render: (width?: number) =>
+					render: (width: number) =>
 						lines(width).map((l) => theme.fg("dim", l)),
 					invalidate: () => {},
 				};
@@ -77,8 +77,8 @@ export default function (pi: ExtensionAPI) {
 		finishedAt = undefined;
 		lastDurationMs = undefined;
 		stopTick();
+		requestRender = undefined;
 		if (ctx.hasUI) {
-			ctx.ui.setWidget(WIDGET_ID, [], { placement: "aboveEditor" });
 			setWidget(ctx);
 		}
 	});
@@ -98,6 +98,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("agent_settled", async (_event, ctx) => {
+		if (!ctx.isIdle()) return;
 		stopTick();
 		if (startedAt !== undefined) {
 			finishedAt = Date.now();
