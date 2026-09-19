@@ -254,4 +254,26 @@ assert.strictEqual(res?.block, true, "standalone Gmail send remains protected");
 res = await pi.fire(bash("rm -rf /tmp/x"), tty("Yes — let it run"));
 assert.strictEqual(res?.block, true, "destructive rm still hard-blocked");
 
+// zernio_post.py: the script itself refuses to publish immediately, so a draft
+// create (-f, no schedule) and a queued create (--queue) must run headless, or the
+// quick-post workflow is impossible for a bot. A bare text create with no file and
+// no safe flag still asks.
+assert.strictEqual(
+  await pi.fire(bash("python3 ~/.claude/skills/content/scripts/zernio_post.py -f content/posts/x.md"), headless),
+  undefined,
+  "zernio draft create from a file allowed headless",
+);
+assert.strictEqual(
+  await pi.fire(bash("python3 ~/.claude/skills/content/scripts/zernio_post.py --file content/posts/x.md -c 'related: https://www.chrismdp.com/x/'"), headless),
+  undefined,
+  "zernio draft create with --file allowed headless",
+);
+assert.strictEqual(
+  await pi.fire(bash("python3 ~/.claude/skills/content/scripts/zernio_post.py -f content/posts/x.md --queue --queue-id 6aad2a32572039a0d99e39cb"), headless),
+  undefined,
+  "zernio queued create allowed headless",
+);
+res = await pi.fire(bash("python3 ~/.claude/skills/content/scripts/zernio_post.py 'post this text now'"), headless);
+assert.strictEqual(res?.block, true, "bare zernio text create still blocked headless");
+
 console.log("bash-guard tests passed");

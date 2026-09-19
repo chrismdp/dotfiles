@@ -70,7 +70,9 @@ const askPatterns: RegExp[] = [
 
   // ── LinkedIn immediate publish (zernio without safe flags) ──
   // Script already prevents immediate publish; this is belt-and-suspenders.
-  /\bzernio_post\.py\b(?!.*(--schedule|--update|--list|--dry-run|-s\b|-u\b|-l\b|-n\b))/,
+  // A create from a post file (-f, a draft unless scheduled) and --queue are safe:
+  // the quick-post workflow needs both to run headless.
+  /\bzernio_post\.py\b(?!.*(--schedule|--queue|--file|--update|--list|--dry-run|-s\b|-f\b|-u\b|-l\b|-n\b))/,
 
   // ── Git push ──
   /\bgit\s+push\b/,
