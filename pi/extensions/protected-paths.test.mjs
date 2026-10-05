@@ -17,6 +17,7 @@ for (const command of [
 	"touch /home/cp/vault/links/reference/source.md",
 	"python3 - <<'PY'\nfrom pathlib import Path\nPath('/home/cp/vault/links/reference/source.md').write_text('x')\nPY",
 	"python3 -c \"open('/home/cp/vault/links/reference/source.md', 'w').write('x')\"",
+	"mv /tmp/bulk-dir /home/cp/vault/links/reference/target/",
 ]) {
 	assert.strictEqual(bashCreatesReference(command), true, `blocks shell creation: ${command}`);
 }
@@ -24,10 +25,15 @@ for (const command of [
 for (const command of [
 	"rg -n foo /home/cp/vault/links/reference/",
 	"cp /home/cp/vault/links/reference/source.md /tmp/source.md",
+	"mv /home/cp/vault/links/reference/cc-essay-clean.md /home/cp/vault/links/reference/it-was-just-a-game-of-catch.md",
+	"mv \"/home/cp/vault/links/reference/cc-essay-clean.md\" \"/home/cp/vault/links/reference/it-was-just-a-game-of-catch.md\"",
+	"mv /home/cp/vault/links/reference/cc-essay-clean.md /home/cp/vault/links/reference/assets/cc-essay-clean.txt && mv /home/cp/vault/links/reference/x.md /home/cp/vault/links/reference/y.md && echo DONE",
+	"cp /home/cp/vault/links/reference/a.md /home/cp/vault/links/reference/b.md",
+	"python3 - <<'PY'\nimport os, shutil\nbase = '/home/cp/vault/links/reference'\nos.rename(f'{base}/cc-essay-clean.md', f'{base}/it-was-just-a-game-of-catch.md')\nprint('ok')\nPY",
 	"python3 -c \"from pathlib import Path; print(Path('/home/cp/vault/links/reference/source.md').read_text())\"",
 	"~/.pi/agent/skills/process-link/scripts/save-article.sh https://example.com --source test",
 ]) {
-	assert.strictEqual(bashCreatesReference(command), false, `allows read or saver: ${command}`);
+	assert.strictEqual(bashCreatesReference(command), false, `allows read, rename or saver: ${command}`);
 }
 
 function fakePi() {

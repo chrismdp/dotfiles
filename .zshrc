@@ -163,3 +163,5 @@ export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
 . "$HOME/.local/bin/env"
 export PATH="/opt/homebrew/opt/go@1.22/bin:$PATH"
+# Run pi with the bash-guard YOLO mode (infra commands run without prompting)
+alias pi-yolo='BASH_GUARD_YOLO=1 env -u OPENAI_API_KEY pi'

@@ -130,6 +130,7 @@ alias cb='claude --mcp-config ~/.claude/mcp-playwright.json'
 
 # Pi wrapper: launch without OpenAI credentials so auto-routing can't pick OpenAI.
 alias pi='env -u OPENAI_API_KEY pi'
+alias pi-yolo='BASH_GUARD_YOLO=1 env -u OPENAI_API_KEY pi'
 vc() {
   if [[ "$1" == "--help" ]]; then
     echo "Usage: vc [name] [claude args...]"

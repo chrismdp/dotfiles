@@ -45,6 +45,7 @@
       "/tmp"
     ]
   },
+  "model": "opus",
   "hooks": {
     "SessionEnd": [
       {
@@ -67,13 +68,13 @@
     ],
     "PreToolUse": [
       {
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash /home/cp/code/dotfiles/bin/tmux-attention pre-tool"
           }
-        ],
-        "matcher": ".*"
+        ]
       }
     ],
     "PostToolUse": [
@@ -88,35 +89,35 @@
         ]
       },
       {
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
-        ],
-        "matcher": ".*"
+        ]
       }
     ],
     "Notification": [
       {
+        "matcher": "permission_prompt|idle_prompt|elicitation_dialog",
         "hooks": [
           {
             "type": "command",
             "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
-        ],
-        "matcher": "permission_prompt|idle_prompt|elicitation_dialog"
+        ]
       }
     ],
     "PermissionRequest": [
       {
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
-        ],
-        "matcher": ".*"
+        ]
       }
     ],
     "Stop": [
@@ -141,13 +142,13 @@
     ],
     "PostToolUseFailure": [
       {
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
-        ],
-        "matcher": ".*"
+        ]
       }
     ]
   },
@@ -199,6 +200,5 @@
       "**Org-specific CLIs**: gog / gws (Google Workspace), airskills (skill sync), xero_api.py, monzo_api.py, ynab-related scripts — routine under this vault's `scripts/` prefix",
       "**routine under ~/vault/ prefix**: vault note edits, project files under `projects/`, content under `content/`, and scripts under `scripts/` are routine working areas for this user"
     ]
-  },
-  "model": "claude-fable-5-1[1m]"
+  }
 }

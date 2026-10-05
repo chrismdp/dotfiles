@@ -254,6 +254,68 @@ assert.strictEqual(res?.block, true, "standalone Gmail send remains protected");
 res = await pi.fire(bash("rm -rf /tmp/x"), tty("Yes — let it run"));
 assert.strictEqual(res?.block, true, "destructive rm still hard-blocked");
 
+
+// docker mutations are ASK-tier: blocked headless, allowed after TTY approval
+res = await pi.fire(bash("docker rm mycontainer"), headless);
+assert.strictEqual(res?.block, true, "docker rm blocked headless");
+res = await pi.fire(bash("docker system prune -af"), headless);
+assert.strictEqual(res?.block, true, "docker prune blocked headless");
+res = await pi.fire(bash("docker compose down"), headless);
+assert.strictEqual(res?.block, true, "docker compose down blocked headless");
+assert.strictEqual(await pi.fire(bash("docker ps"), headless), undefined, "read-only docker passes");
+res = await pi.fire(bash("docker rm mycontainer"), tty("Yes — let it run"));
+assert.strictEqual(res, undefined, "docker rm allowed after TTY approval");
+
+// ── YOLO mode (BASH_GUARD_YOLO=1): in a TTY, the hard-BLOCK tier becomes ASK ──
+// Headless behaviour is completely unaffected by YOLO mode.
+
+_setRunGogForTests(() => eventJson([{ email: "chris.p@rsons.org", self: true }, { email: "x@ext.com" }]));
+process.env.BASH_GUARD_YOLO = "1";
+
+// no-TTY: everything behaves exactly as without YOLO
+res = await pi.fire(bash("rm -rf /tmp/x"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: destructive rm still hard-blocked");
+res = await pi.fire(bash("git push"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: git push ask still blocks");
+res = await pi.fire(bash("docker rm mycontainer"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: docker rm ask still blocks");
+res = await pi.fire(bash("gog gmail send --to a@example.com --subject hi"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: email send still blocked");
+res = await pi.fire(bash("gog calendar delete chris.p@rsons.org ev2"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: shared calendar delete still blocked");
+res = await pi.fire(bash("echo '{}' >> /tmp/agent-dispatch.jsonl"), headless);
+assert.strictEqual(res?.block, true, "yolo headless: evidence tampering still blocked");
+
+// TTY: infra ask-tier auto-approves in yolo (git push, curl, pip, systemctl, docker)
+assert.strictEqual(await pi.fire(bash("git push"), tty("No — block it")), undefined, "yolo TTY: git push auto-approved, no prompt");
+assert.strictEqual(
+  await pi.fire(bash("curl -X POST https://api.example.com -d '{}'"), tty("No — block it")),
+  undefined,
+  "yolo TTY: mutating curl auto-approved",
+);
+assert.strictEqual(await pi.fire(bash("pip install requests"), tty("No — block it")), undefined, "yolo TTY: pip install auto-approved");
+assert.strictEqual(await pi.fire(bash("systemctl restart myapp"), tty("No — block it")), undefined, "yolo TTY: systemctl restart auto-approved");
+assert.strictEqual(await pi.fire(bash("docker rm mycontainer"), tty("No — block it")), undefined, "yolo TTY: docker rm auto-approved");
+assert.strictEqual(await pi.fire(bash("docker system prune -af"), tty("No — block it")), undefined, "yolo TTY: docker prune auto-approved");
+
+// TTY: destructive rm downgrades from hard block to ask
+res = await pi.fire(bash("rm -rf /tmp/x"), tty("Yes — let it run"));
+assert.strictEqual(res, undefined, "yolo TTY: destructive rm askable and approvable");
+res = await pi.fire(bash("rm -rf /tmp/x"), tty("No — block it"));
+assert.strictEqual(res?.block, true, "yolo TTY: destructive rm blocked when declined");
+
+// TTY: email send still asks (same as today)
+res = await pi.fire(bash("gog gmail send --to a@example.com --subject hi"), tty("Yes — let it run"));
+assert.strictEqual(res, undefined, "yolo TTY: email send askable and approvable");
+
+// TTY: shared calendar and evidence tampering stay hard-blocked
+res = await pi.fire(bash("gog calendar delete chris.p@rsons.org ev2"), tty("Yes — let it run"));
+assert.strictEqual(res?.block, true, "yolo TTY: shared calendar delete still hard-blocked");
+res = await pi.fire(bash("echo '{}' >> /tmp/agent-dispatch.jsonl"), tty("Yes — let it run"));
+assert.strictEqual(res?.block, true, "yolo TTY: evidence tampering still hard-blocked");
+
+delete process.env.BASH_GUARD_YOLO;
+
 // zernio_post.py: the script itself refuses to publish immediately, so a draft
 // create (-f, no schedule) and a queued create (--queue) must run headless, or the
 // quick-post workflow is impossible for a bot. A bare text create with no file and

@@ -1,14 +1,31 @@
 {
-  "lastChangelogVersion": "0.85.1",
-  "defaultProvider": "openrouter",
-  "defaultModel": "z-ai/glm-5.3-flash",
+  "lastChangelogVersion": "0.87.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-6-sol",
   "hideThinkingBlock": true,
   "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-schedule-prompt",
-    "git:github.com/MasuRii/pi-tool-display@91cef7580078371f8dc49a8607222807ad6a424d"
+    "git:github.com/chrismdp/pi-tool-display@f1c95b41d80d440cca8b36a1ebeba342f2074e14"
   ],
   "theme": "gruvbox",
-  "quietStartup": false,
-  "tuiMode": "regular"
+  "quietStartup": true,
+  "tuiMode": "regular",
+  "steeringMode": "all",
+  "compaction": {
+    "enabled": true
+  },
+  "editorPaddingX": 1,
+  "outputPad": 1,
+  "autocompleteMaxVisible": 7,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "followUpMode": "one-at-a-time",
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "showCacheMissNotices": true,
+  "defaultProjectTrust": "always",
+  "treeFilterMode": "all"
 }

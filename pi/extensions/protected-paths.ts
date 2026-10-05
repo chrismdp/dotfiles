@@ -35,13 +35,23 @@ const referenceToken = String.raw`(?:"[^"]*${referencePath}[^"]*"|'[^']*${refere
 const referenceCreationPatterns = [
 	new RegExp(String.raw`(?:^|[^>])>>?\s*${referenceToken}`, "m"),
 	new RegExp(String.raw`\btee\s+[^\n;&|]*${referencePath}`, "m"),
-	new RegExp(String.raw`\b(?:cp|mv|install|rsync)\s+[^\n;&|]*\s${referenceToken}\s*(?:$|[;&|])`, "m"),
 	new RegExp(String.raw`\b(?:touch|truncate)\s+[^\n;&|]*${referencePath}`, "m"),
 	new RegExp(String.raw`\bdd\b[^\n;&|]*\bof\s*=\s*${referenceToken}`, "m"),
 	new RegExp(String.raw`\bsed\b[^\n;&|]*\s-i(?:\s|[^\s]*)[^\n;&|]*${referencePath}`, "m"),
 	new RegExp(String.raw`\bPath\s*\([^)]*${referencePath}[^)]*\)\s*\.\s*write_(?:text|bytes)\s*\(`, "ms"),
 	new RegExp(String.raw`\bopen\s*\([^,]*${referencePath}[^,]*,\s*["'][wax+]`, "ms"),
 ];
+
+// create-by-move: cp/mv/install/rsync landing IN references only counts as
+// creation when the source is OUTSIDE references. Renames and in-place copies
+// of existing saver-created sources (slug tidy-ups, asset moves) are
+// bookkeeping, which the law allows — the saver script owns creation, not the
+// file's later name. Handled separately from referenceCreationPatterns so a
+// within-directory move still lets the other creation routes be checked.
+const referenceMovePattern = new RegExp(
+	String.raw`\b(?:cp|mv|install|rsync)\s+((?:"[^"]*"|'[^']*'|[^\s;&|]+))\s+${referenceToken}\s*(?:$|[;&|])`,
+	"m"
+);
 
 export function isReferencePath(path: string): boolean {
 	return new RegExp(referencePath).test(path.replaceAll("\\", "/"));
@@ -50,6 +60,14 @@ export function isReferencePath(path: string): boolean {
 export function bashCreatesReference(command: string): boolean {
 	const normalised = command.replaceAll("\\", "/");
 	if (!new RegExp(referencePath).test(normalised)) return false;
+
+	const move = referenceMovePattern.exec(normalised);
+	if (move) {
+		const source = move[1].replace(/^["']|["']$/g, "");
+		if (!new RegExp(referencePath).test(source)) return true; // moved in from outside — creation
+		// source is inside references: within-directory rename/copy — allowed bookkeeping
+	}
+
 	return referenceCreationPatterns.some((pattern) => pattern.test(normalised));
 }
 

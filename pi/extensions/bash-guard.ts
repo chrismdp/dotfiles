@@ -5,6 +5,14 @@
  *   BLOCK  — always denied (destructive rm with recursive/wildcards)
  *   ASK    — prompt for confirmation in interactive mode, block in non-TTY
  *
+ * YOLO mode (BASH_GUARD_YOLO=1) affects interactive sessions only:
+ *   - infra commands (git push, mutating curl, pip, systemctl, docker…) run
+ *     without prompting
+ *   - the hard BLOCK on destructive rm downgrades to an ASK, so it can be
+ *     approved at the prompt
+ * Email sends still ask; shared-calendar changes and evidence-log tampering
+ * stay hard-blocked; non-TTY behaviour is completely unchanged.
+ *
  * Calendar event deletion is attendee-aware: events with only Chris on them
  * may be deleted freely; events with anyone else on the attendee list are
  * always blocked; unparseable/unfetchable cases fall back to ASK.
@@ -42,16 +50,18 @@ const evidenceTamperPatterns: RegExp[] = [
   new RegExp(String.raw`(?:^|[^>])>{1,2}\s*${evidencePathRe}`),
 ];
 
-const askPatterns: RegExp[] = [
-  // ── Email sending ──
+/** Email sends/deletions — stay ask-only even in YOLO mode. */
+const emailAskPatterns: RegExp[] = [
   /\bgog\s+gmail\s+send(?=$|[\s;&|()<>])/,
   /\bgog\s+gmail\s+drafts?\s+send\b/,
   /\bgws\s+gmail\s+users\s+messages\s+send\b/,
-
-  // ── Email / draft deletion ──
   /\bgws\s+gmail\s+users\s+messages\s+delete\b/,
   /\bgws\s+gmail\s+users\s+messages\s+trash\b/,
   /\bgws\s+gmail\s+users\s+messages\s+batchDelete\b/,
+];
+
+const askPatterns: RegExp[] = [
+  ...emailAskPatterns,
 
   // ── Drive file deletion ──
   /\bgog\s+drive\s+delete\b/,
@@ -94,6 +104,13 @@ const askPatterns: RegExp[] = [
 
   // ── Blogwatcher remove ──
   /\bblogwatcher\s+remove\b/,
+
+  // ── Docker mutations ──
+  /\bdocker\s+(?:rm|rmi)\b/,
+  /\bdocker\s+(?:container|image|volume|network|secret|config)\s+rm\b/,
+  /\bdocker\s+(?:system|container|image|volume|network|builder)\s+prune\b/,
+  /\bdocker\s+(?:stop|kill|restart|pause|unpause)\b/,
+  /\bdocker\s+compose\s+(?:down|rm|stop|kill)\b/,
 ]
 
 // ── Calendar event mutation: attendee-aware ───────────────────────────────
@@ -432,13 +449,17 @@ export default function (pi: ExtensionAPI) {
       };
     }
 
+    // YOLO mode downgrades this hard block to an ASK in interactive sessions
+    // only; headless runs still hard-block.
+    const yolo = process.env.BASH_GUARD_YOLO === "1" && !!ctx.hasUI;
     const blockMatch = matchAny(scanCommand, blockPatterns);
-    if (blockMatch) {
+    if (blockMatch && !yolo) {
       return {
         block: true,
         reason: `Destructive rm blocked (recursive or wildcard): matched "${blockMatch.source}"`,
       };
     }
+    const rmDowngradedToAsk = !!blockMatch && yolo;
 
     // Help and dry-run invocations are observational. Allow them before the
     // mutating calendar checks, but after the hard rm guard.
@@ -479,7 +500,14 @@ export default function (pi: ExtensionAPI) {
 
     // ── Tier 2: ASK (confirm in TTY, block otherwise) ──
     const askMatch = matchAny(scanCommand, askPatterns);
-    if (askMatch || askForCalendar) {
+    // YOLO: infra asks run without prompting. Email and calendar asks are
+    // excluded, and a downgraded destructive rm still prompts.
+    const yoloInfraAsk =
+      yolo && !!askMatch && !askForCalendar && !rmDowngradedToAsk &&
+      !matchAny(scanCommand, emailAskPatterns);
+    if (yoloInfraAsk) return;
+
+    if (askMatch || askForCalendar || rmDowngradedToAsk) {
       const why = askForCalendar ? ` (calendar check: ${askForCalendar})` : "";
       if (!ctx.hasUI) {
         return {
