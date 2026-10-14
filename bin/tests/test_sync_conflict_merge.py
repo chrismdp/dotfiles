@@ -139,8 +139,9 @@ def saved(env):
             for run_dir in root.iterdir() for p in run_dir.rglob("*") if p.is_file()}
 
 
-class TestCleanMerge:
-    def test_edits_to_different_lines_merge_without_the_model(self, vault, env, model):
+class TestEveryConflict:
+    def test_edits_to_different_lines_also_go_to_the_model(self, vault, env, model):
+        # No deterministic merge: git has no trustworthy base to merge against.
         commit(vault, {"Note.md": BASE}, env)
         ours = BASE.replace("line one", "line one, edited on the laptop")
         theirs = BASE.replace("line five", "line five, edited on the phone")
@@ -149,12 +150,12 @@ class TestCleanMerge:
 
         result = run(vault, env, model)
 
-        assert (vault / "Note.md").read_text() == BASE.replace(
-            "line one", "line one, edited on the laptop").replace(
-            "line five", "line five, edited on the phone")
+        [prompt] = model.prompts()
+        assert ours in prompt
+        assert theirs in prompt
+        assert (vault / "Note.md").read_text() == "merged by fake\n"
         assert not (vault / conflict_name("Note.md")).exists()
-        assert model.prompts() == []
-        assert "clean" in result.stdout
+        assert "llm" in result.stdout
         assert conflict_name("Note.md") in result.stdout
 
     def test_both_inputs_are_saved_before_the_merge(self, vault, env, model):
@@ -178,6 +179,25 @@ class TestCleanMerge:
 
 
 class TestModelMerge:
+    def test_an_edit_already_committed_survives_a_stale_copy(self, vault, env, model):
+        # An agent edits the note on the VPS and vault-sync commits it. The
+        # laptop's edit, made from the older version, then arrives as the
+        # conflict copy. Against HEAD as base, git would hand back the laptop's
+        # copy as a clean merge and silently drop the committed edit.
+        commit(vault, {"Note.md": BASE}, env)
+        vps = BASE.replace("line one", "agent edit on the VPS")
+        commit(vault, {"Note.md": vps}, env)
+        write(vault, conflict_name("Note.md"), BASE.replace("line five", "laptop edit"))
+        model.reply("merged by fake\n")
+
+        run(vault, env, model)
+
+        [prompt] = model.prompts()
+        assert "agent edit on the VPS" in prompt
+        assert "laptop edit" in prompt
+        assert (vault / "Note.md").read_text() == "merged by fake\n"
+        assert not (vault / conflict_name("Note.md")).exists()
+
     def test_edits_to_the_same_line_go_to_the_model(self, vault, env, model):
         commit(vault, {"Note.md": BASE}, env)
         write(vault, "Note.md", BASE.replace("line two", "laptop wording"))
@@ -190,12 +210,11 @@ class TestModelMerge:
         assert not (vault / conflict_name("Note.md")).exists()
         [prompt] = model.prompts()
         assert "Note.md" in prompt
-        assert BASE in prompt
         assert "laptop wording" in prompt
         assert "phone wording" in prompt
         assert "llm" in result.stdout
 
-    def test_untracked_file_has_no_base_and_goes_to_the_model(self, vault, env, model):
+    def test_untracked_file_goes_to_the_model(self, vault, env, model):
         commit(vault, {"Other.md": "x\n"}, env)
         write(vault, "New.md", "written on the laptop\n")
         write(vault, conflict_name("New.md"), "written on the phone\n")
@@ -335,7 +354,7 @@ class TestLeftAlone:
 
         assert not (vault / conflict_name("Note.md")).exists()
         assert "skipped" in result.stdout
-        assert "clean" in result.stdout
+        assert "llm" in result.stdout
 
 
 @pytest.mark.parametrize("name", [
@@ -352,8 +371,7 @@ def test_conflict_names_are_mapped_back_to_their_original(vault, env, model, nam
 
     run(vault, env, model)
 
-    assert (vault / name).read_text() == BASE.replace("line one", "laptop").replace(
-        "line five", "phone")
+    assert (vault / name).read_text() == "merged by fake\n"
     assert not (vault / conflict_name(name)).exists()
     assert conflict_name(name) in saved(env)
 
@@ -385,9 +403,8 @@ class TestVaultBackup:
 
         files = git(origin, "ls-tree", "-r", "--name-only", "main", env=env).split("\n")
         assert conflict_name("Note.md") not in files
-        assert git(origin, "show", "main:Note.md", env=env) == BASE.replace(
-            "line one", "laptop").replace("line five", "phone")
-        assert "clean" in (home / "bin" / "sync-conflict-merge.log").read_text()
+        assert git(origin, "show", "main:Note.md", env=env) == "merged by fake\n"
+        assert "llm" in (home / "bin" / "sync-conflict-merge.log").read_text()
 
     def test_backup_still_happens_when_the_resolver_fails(
             self, vault, env, model, origin):

@@ -9,10 +9,15 @@ reaches git.
 
 For each conflict copy under the vault (skipping .git/):
   1. Save the original and the copy to the state dir, so any merge can be undone.
-  2. Three-way merge with `git merge-file`, base = the note as last committed.
-  3. If that conflicts, ask Sonnet (no tools) for the merged file.
+  2. Ask Sonnet (no tools) to merge the two versions, keeping everything either has.
 Anything that cannot be merged is left exactly as it was. One line per
 conflict goes to stdout; nothing is printed when there are none.
+
+There is deliberately no `git merge-file` step. vault-sync commits every five
+minutes, so HEAD usually already holds one side's edit: as a base it makes
+git return the other side as a "clean" merge and silently drop that edit.
+Without a trustworthy base the merge is a union: a line one side deleted may
+come back, but nothing either side wrote is lost.
 
     sync-conflict-merge <vault>
 
@@ -42,31 +47,24 @@ SYSTEM_PROMPT = (
     "Reply with the merged file content only.")
 
 PROMPT = """\
-Two devices edited the same file at the same time. Combine their changes into one file.
+Two devices edited the same file before they synced. Each version may hold edits \
+the other has not seen. Combine them into one file.
 
 File: {path}
 
 Rules:
-- Keep every distinct addition and edit from both versions. Never drop content that only one version has.
-- Where both versions changed the same passage differently, keep both changes in a sensible order, without repeating text they share.
+- Keep every line, addition and edit from both versions. Never drop content because one version lacks it: that device may just not have seen it yet.
+- Where the two versions word the same passage differently, keep both wordings, unless one simply extends the other; then keep the fuller one once.
+- Do not repeat text the two versions share.
 - Keep the file's existing format, structure and front matter.
 - Output ONLY the merged file content. No explanation, no commentary, no code fences.
 
-{base}<version_a>
+<version_a>
 {ours}</version_a>
 
 <version_b>
 {theirs}</version_b>
 """
-
-BASE_BLOCK = """\
-<base>
-{text}</base>
-The base is the last saved version, which both devices started from.
-
-"""
-
-NO_BASE = "There is no common base version: the file is new.\n\n"
 
 
 class Skip(Exception):
@@ -97,13 +95,6 @@ def read_utf8(path):
     return data
 
 
-def committed_version(vault, rel):
-    """The note as last committed, or None if git has never seen it."""
-    result = subprocess.run(["git", "-C", str(vault), "show", f"HEAD:./{rel}"],
-                            capture_output=True)
-    return result.stdout if result.returncode == 0 else None
-
-
 def save_inputs(run_dir, vault, *paths):
     for path in paths:
         target = run_dir / path.relative_to(vault)
@@ -111,17 +102,6 @@ def save_inputs(run_dir, vault, *paths):
         if not target.exists():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
-
-
-def merge_file(ours, base, theirs):
-    """git's three-way merge; None if it leaves conflicts."""
-    with tempfile.NamedTemporaryFile() as base_file:
-        base_file.write(base or b"")
-        base_file.flush()
-        result = subprocess.run(
-            ["git", "merge-file", "-p", str(ours), base_file.name, str(theirs)],
-            capture_output=True)
-    return result.stdout if result.returncode == 0 else None
 
 
 def merge_command():
@@ -151,12 +131,9 @@ def strip_fence(text, *inputs):
     return text
 
 
-def ask_model(rel, ours, base, theirs):
+def ask_model(rel, ours, theirs):
     ours_text, theirs_text = ours.decode(), theirs.decode()
-    prompt = PROMPT.format(
-        path=rel,
-        base=BASE_BLOCK.format(text=base.decode()) if base is not None else NO_BASE,
-        ours=ours_text, theirs=theirs_text)
+    prompt = PROMPT.format(path=rel, ours=ours_text, theirs=theirs_text)
     timeout = float(os.environ.get("SYNC_MERGE_TIMEOUT", DEFAULT_TIMEOUT))
     command = merge_command()
     with tempfile.TemporaryDirectory() as scratch:  # never the vault, so no project config
@@ -188,16 +165,11 @@ def resolve(vault, conflict, run_dir):
     rel = original.relative_to(vault)
 
     save_inputs(run_dir, vault, original, conflict)
-    base = committed_version(vault, rel)
-    merged = merge_file(original, base, conflict)
-    method = "clean"
-    if merged is None:
-        merged = ask_model(rel, ours, base, theirs)
-        method = "llm"
+    merged = ask_model(rel, ours, theirs)
 
     original.write_bytes(merged)
     conflict.unlink()
-    return method, f"merged into {rel}; inputs saved in {run_dir}"
+    return "llm", f"merged into {rel}; inputs saved in {run_dir}"
 
 
 def log(method, conflict, reason):
