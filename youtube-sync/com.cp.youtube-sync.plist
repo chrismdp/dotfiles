@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cp.youtube-sync</string>
+  <key>ProgramArguments</key>
+  <array><string>/Users/cp/youtube-sync/sync.sh</string></array>
+  <key>StartInterval</key>
+  <integer>3600</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>WorkingDirectory</key>
+  <string>/Users/cp/youtube-sync</string>
+  <key>StandardOutPath</key>
+  <string>/Users/cp/youtube-sync/sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/cp/youtube-sync/sync.log</string>
+</dict>
+</plist>
