@@ -12,7 +12,6 @@ Then link up as many files as you want to use...
   cd ~
   ln -sf config_files/vimrc ~/.vimrc
   ln -sf config_files/vim ~/.vim
-  ln -sf config_files/irssi ~/.irssi
   ln -sf config_files/gvimrc ~/.gvimrc
   ln -sf config_files/ackrc ~/.ackrc
 </pre>
@@ -53,14 +52,16 @@ SYSTEMD SYSTEM SERVICES
 -----------------------
 
 <pre>
-  for svc in claude-inbox-watcher.service telegram-webhook.service; do
+  for svc in telegram-webhook.service; do
     sudo ln -sf ~/code/dotfiles/systemd/system/$svc /etc/systemd/system/$svc
   done
   sudo systemctl daemon-reload
-  sudo systemctl enable --now claude-inbox-watcher telegram-webhook
+  sudo systemctl enable --now telegram-webhook
 </pre>
 
 `telegram-webhook.service` sources `~/.secret_env` for `TELEGRAM_BOT_TOKEN` etc.
+
+`claude-inbox-watcher.service` is **retired** (2026-06-06): `Inbox.md` is no longer a routing buffer — `collect.sh` routes incoming signal at source (Gmail → Em, saved links → Richard). Routing failures go to Bella via `notify-bella-failure.sh`.
 
 NGINX SITES
 -----------
@@ -106,4 +107,4 @@ What's in each file:
 - **systemd/user/** - User systemd unit files (claude-worker template, voice-inbox).
 - **systemd/system/** - System-level systemd unit files (claude-inbox-watcher, telegram-webhook).
 - **nginx/sites-available/** - Nginx vhost config for `vps.chrismdp.com` (telegram-webhook + review board + voice inbox).
-- **crontab.vps** - VPS crontab. Install with `crontab ~/code/dotfiles/crontab.vps`.
+- **build-crontab.sh** - Assembles and installs the VPS crontab from `~/vault/crontab.vps` (base fragment) plus every `~/vault/agents/<name>/crontab` (per-agent fragments) — both live in the private vault repo, not here. Never `crontab ~/vault/crontab.vps` directly, it drops every agent's cron.

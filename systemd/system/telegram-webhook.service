@@ -10,6 +10,12 @@ Environment="TZ=Europe/London"
 ExecStart=/bin/bash -c 'source /home/cp/.secret_env && exec /usr/bin/python3 /home/cp/.claude/skills/telegram/scripts/webhook-handler.py'
 Restart=always
 RestartSec=5
+# Fire-and-forget agent dispatches (agent-dispatch.sh → pi) are spawned as webhook
+# children and live in this unit's cgroup. With the default KillMode=control-group a
+# restart SIGKILLs the whole cgroup — killing active/queued agent runs mid-task.
+# KillMode=process kills only the webhook on stop/restart; in-flight dispatches finish
+# and reply via send.sh independently (they don't need the webhook after launch).
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target

@@ -1,4 +1,5 @@
 {
+  "skillListingBudgetFraction": 0.03,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
@@ -21,32 +22,33 @@
       "Read(~/**)",
       "Grep(/home/cp/**)",
       "Grep(~/**)",
-      "Glob(/home/cp/**)",
-      "Glob(~/**)",
       "Read(/tmp/**)",
-      "Write(~/Pictures/**)",
       "Edit(~/Pictures/**)",
-      "Write(/tmp/**)",
       "Edit(/tmp/**)",
-      "Write(~/vault/blog/**)",
       "Edit(~/vault/blog/**)",
       "mcp__perplexity__perplexity_ask",
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
       "mcp__perplexity__perplexity_reason",
-      "mcp__posthog__:*"
+      "Bash(codex exec *)"
     ],
-    "deny": [],
+    "deny": [
+      "AskUserQuestion"
+    ],
     "ask": [
       "Bash(*lockbox-prompt*)",
       "Bash(gog gmail send:*)",
-      "Agent(lockbox:delegate)"
+      "Agent(lockbox:delegate)",
+      "mcp__claude_ai_Gmail__send_message",
+      "mcp__claude_ai_Gmail__reply",
+      "mcp__claude_ai_Gmail__forward"
     ],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "auto",
     "additionalDirectories": [
       "/tmp"
     ]
   },
+  "model": "opus",
   "hooks": {
     "SessionEnd": [
       {
@@ -57,6 +59,14 @@
             "async": true
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -65,16 +75,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#❖ }\"; } >/dev/null 2>&1; true"
-          }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◈ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention pre-tool"
           }
         ]
       }
@@ -91,22 +92,22 @@
         ]
       },
       {
-        "matcher": "AskUserQuestion",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux rename-window -t \"$TMUX_PANE\" \"${name#◈ }\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }
     ],
     "Notification": [
       {
-        "matcher": ".*",
+        "matcher": "permission_prompt|idle_prompt|elicitation_dialog",
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -117,7 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"❖ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -127,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); tmux set-window-option -t \"$TMUX_PANE\" automatic-rename off; clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"◉ ${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -137,7 +138,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -n \"$TMUX\" ] && { name=$(tmux display-message -p -t \"$TMUX_PANE\" '#W'); clean=\"${name#◉ }\"; clean=\"${clean#◈ }\"; clean=\"${clean#❖ }\"; tmux rename-window -t \"$TMUX_PANE\" \"${clean}\"; } >/dev/null 2>&1; true"
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }
@@ -150,11 +162,46 @@
   "enabledPlugins": {
     "lockbox@chrismdp": false,
     "ruby-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
   },
+  "effortLevel": "high",
+  "promptSuggestionEnabled": false,
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "autoCompactEnabled": false,
+  "skipWorkflowUsageWarning": true,
+  "autoCompactEnabled": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: private (chrismdp/vault, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: 1Password (op CLI, vault \"AI Agent\"); `~/.secret_env` is self-generating from `~/.secret_env.tpl` — never write resolved secret values into it directly",
+      "**Default / protected branches**: main (default); Rulesets not queryable here, Protected branches: none listed — treat as possibly protected via ruleset rather than confirmed unprotected",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (chrismdp/vault, private, GitHub) and its remote only — no additional orgs configured",
+      "**Trusted internal domains**: vps.chrismdp.com, airskills.ai, agentaccelerator.ai (hosts contacted repeatedly from this project's transcripts)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: gog/gws (Google Workspace CLI), airskills (skill-sync CLI), Review Board, Claude Remote (Google Drive shared folder), Xero (business finance), YNAB (personal finance), Monzo",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: vault notes and files holding personal, family, client, or financial data (e.g. client structure notes under `~/vault/<Client Name>.md`, decision logs, financial/Xero/YNAB records, `.env`); share only with audiences cleared per the client-boundary rules in CLAUDE.md (client-facing drafts are advisory-only, full detail reserved for Chris)",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: personal/hobby knowledge management (Obsidian PKM vault) — notes, content creation, automation scripts, and light business/client admin",
+      "**Trusted repo**: `~/vault` (chrismdp/vault on GitHub, private) and its configured remote `origin`",
+      "**Org-specific CLIs**: gog / gws (Google Workspace), airskills (skill sync), xero_api.py, monzo_api.py, ynab-related scripts — routine under this vault's `scripts/` prefix",
+      "**routine under ~/vault/ prefix**: vault note edits, project files under `projects/`, content under `content/`, and scripts under `scripts/` are routine working areas for this user"
+    ]
+  }
 }
