@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""Merge Syncthing conflict copies back into the notes they came from.
+
+When two devices change the same note before Syncthing catches up, it keeps
+one under the real name and writes the other alongside as
+`<stem>.sync-conflict-<YYYYMMDD>-<HHMMSS>-<device><ext>`. vault-sync.sh runs
+this before staging, so both edits survive and the conflict copy never
+reaches git.
+
+For each conflict copy under the vault (skipping .git/):
+  1. Save the original and the copy to the state dir, so any merge can be undone.
+  2. Three-way merge with `git merge-file`, base = the note as last committed.
+  3. If that conflicts, ask Sonnet (no tools) for the merged file.
+Anything that cannot be merged is left exactly as it was. One line per
+conflict goes to stdout; nothing is printed when there are none.
+
+    sync-conflict-merge <vault>
+
+Environment:
+  SYNC_CONFLICT_STATE_DIR  where inputs are saved (default ~/.local/state/sync-conflicts)
+  SYNC_MERGE_CMD           model command, read from stdin (default: claude -p, Sonnet, no tools)
+  SYNC_MERGE_TIMEOUT       seconds before the model is abandoned (default 300)
+"""
+
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+CONFLICT = re.compile(
+    r"^(?P<stem>.*)\.sync-conflict-\d{8}-\d{6}-[A-Z0-9]{7}(?P<ext>\.[^.]*)?$")
+DEFAULT_STATE_DIR = Path.home() / ".local" / "state" / "sync-conflicts"
+DEFAULT_TIMEOUT = 300  # a hung model would hold vault-sync's lock and stop every backup
+
+SYSTEM_PROMPT = (
+    "You merge two versions of a text file into one. "
+    "Reply with the merged file content only.")
+
+PROMPT = """\
+Two devices edited the same file at the same time. Combine their changes into one file.
+
+File: {path}
+
+Rules:
+- Keep every distinct addition and edit from both versions. Never drop content that only one version has.
+- Where both versions changed the same passage differently, keep both changes in a sensible order, without repeating text they share.
+- Keep the file's existing format, structure and front matter.
+- Output ONLY the merged file content. No explanation, no commentary, no code fences.
+
+{base}<version_a>
+{ours}</version_a>
+
+<version_b>
+{theirs}</version_b>
+"""
+
+BASE_BLOCK = """\
+<base>
+{text}</base>
+The base is the last saved version, which both devices started from.
+
+"""
+
+NO_BASE = "There is no common base version: the file is new.\n\n"
+
+
+class Skip(Exception):
+    """Leave this conflict alone; the message says why."""
+
+
+def original_for(conflict):
+    match = CONFLICT.match(conflict.name)
+    if not match:
+        raise Skip("unrecognised conflict file name")
+    return conflict.with_name(match["stem"] + (match["ext"] or ""))
+
+
+def find_conflicts(vault):
+    for root, dirs, files in os.walk(vault):
+        dirs[:] = sorted(d for d in dirs if d != ".git")
+        for name in sorted(files):
+            if ".sync-conflict-" in name:
+                yield Path(root) / name
+
+
+def read_utf8(path):
+    data = path.read_bytes()
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError:
+        raise Skip(f"not UTF-8 text: {path.name}") from None
+    return data
+
+
+def committed_version(vault, rel):
+    """The note as last committed, or None if git has never seen it."""
+    result = subprocess.run(["git", "-C", str(vault), "show", f"HEAD:./{rel}"],
+                            capture_output=True)
+    return result.stdout if result.returncode == 0 else None
+
+
+def save_inputs(run_dir, vault, *paths):
+    for path in paths:
+        target = run_dir / path.relative_to(vault)
+        # A second conflict on the same note must not overwrite the true original.
+        if not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+
+
+def merge_file(ours, base, theirs):
+    """git's three-way merge; None if it leaves conflicts."""
+    with tempfile.NamedTemporaryFile() as base_file:
+        base_file.write(base or b"")
+        base_file.flush()
+        result = subprocess.run(
+            ["git", "merge-file", "-p", str(ours), base_file.name, str(theirs)],
+            capture_output=True)
+    return result.stdout if result.returncode == 0 else None
+
+
+def merge_command():
+    override = os.environ.get("SYNC_MERGE_CMD")
+    if override:
+        return shlex.split(override)
+    # Cron's PATH has no ~/.local/bin, which is where claude installs itself.
+    claude = shutil.which("claude") or str(Path.home() / ".local" / "bin" / "claude")
+    return [claude, "-p", "--model", "sonnet",
+            "--tools", "",              # no tools: it can read nothing and write nothing
+            "--strict-mcp-config",      # and no MCP servers either
+            "--safe-mode",              # no hooks, CLAUDE.md, skills or plugins
+            "--no-session-persistence",  # keep merges out of the session logs
+            "--system-prompt", SYSTEM_PROMPT]
+
+
+def strip_fence(text, *inputs):
+    """Remove one ``` fence wrapped round the whole reply by the model.
+
+    Only when neither input starts with a fence: then the fence is the note's own.
+    """
+    lines = text.strip("\n").split("\n")
+    note_is_fenced = any(i.lstrip().startswith("```") for i in inputs)
+    if (len(lines) >= 2 and lines[0].startswith("```") and lines[-1].strip() == "```"
+            and not note_is_fenced):
+        return "\n".join(lines[1:-1]) + "\n"
+    return text
+
+
+def ask_model(rel, ours, base, theirs):
+    ours_text, theirs_text = ours.decode(), theirs.decode()
+    prompt = PROMPT.format(
+        path=rel,
+        base=BASE_BLOCK.format(text=base.decode()) if base is not None else NO_BASE,
+        ours=ours_text, theirs=theirs_text)
+    timeout = float(os.environ.get("SYNC_MERGE_TIMEOUT", DEFAULT_TIMEOUT))
+    command = merge_command()
+    with tempfile.TemporaryDirectory() as scratch:  # never the vault, so no project config
+        try:
+            result = subprocess.run(command, input=prompt.encode(), capture_output=True,
+                                    timeout=timeout, cwd=scratch)
+        except FileNotFoundError:
+            raise Skip(f"merge command not found: {command[0]}") from None
+        except subprocess.TimeoutExpired:
+            raise Skip(f"merge command timed out after {timeout:g}s") from None
+    if result.returncode != 0:
+        detail = result.stderr.decode(errors="replace").strip().splitlines()
+        raise Skip(f"merge command failed (exit {result.returncode})"
+                   + (f": {detail[-1]}" if detail else ""))
+    merged = result.stdout.decode("utf-8", errors="replace")
+    if not merged.strip():
+        raise Skip("merge command returned nothing")
+    # Match the note's final newline, whatever the model did at the end.
+    merged = strip_fence(merged, ours_text, theirs_text).rstrip("\n")
+    return (merged + "\n" if ours_text.endswith("\n") else merged).encode()
+
+
+def resolve(vault, conflict, run_dir):
+    """Merge one conflict copy into its original. Returns (method, reason)."""
+    original = original_for(conflict)
+    if not original.is_file():
+        raise Skip(f"original missing: {original.relative_to(vault)}")
+    ours, theirs = read_utf8(original), read_utf8(conflict)
+    rel = original.relative_to(vault)
+
+    save_inputs(run_dir, vault, original, conflict)
+    base = committed_version(vault, rel)
+    merged = merge_file(original, base, conflict)
+    method = "clean"
+    if merged is None:
+        merged = ask_model(rel, ours, base, theirs)
+        method = "llm"
+
+    original.write_bytes(merged)
+    conflict.unlink()
+    return method, f"merged into {rel}; inputs saved in {run_dir}"
+
+
+def log(method, conflict, reason):
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{stamp} {method} {conflict}: {reason}", flush=True)
+
+
+def main(argv):
+    if len(argv) != 2:
+        raise SystemExit(__doc__)
+    vault = Path(argv[1]).expanduser().resolve()
+    state = Path(os.environ.get("SYNC_CONFLICT_STATE_DIR") or DEFAULT_STATE_DIR)
+    run_dir = state / datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    for conflict in find_conflicts(vault):
+        rel = conflict.relative_to(vault)
+        try:
+            method, reason = resolve(vault, conflict, run_dir)
+        except Skip as skip:
+            method, reason = "skipped", str(skip)
+        except Exception as error:  # one bad file must never stop the rest
+            method, reason = "skipped", f"{type(error).__name__}: {error}"
+        log(method, rel, reason)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
