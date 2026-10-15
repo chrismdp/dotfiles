@@ -64,7 +64,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }
@@ -75,7 +75,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention pre-tool"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention pre-tool"
           }
         ]
       }
@@ -86,7 +86,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/home/cp/code/agent-coordination-bus/hooks/post-tool.sh",
+            "command": "f=~/code/agent-coordination-bus/hooks/post-tool.sh; [ -x \"$f\" ] && exec \"$f\"; exit 0",
             "async": true
           }
         ]
@@ -96,7 +96,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }
@@ -107,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -118,7 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention waiting"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention waiting"
           }
         ]
       }
@@ -138,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }
@@ -149,7 +149,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/cp/code/dotfiles/bin/tmux-attention clear"
+            "command": "bash ~/code/dotfiles/bin/tmux-attention clear"
           }
         ]
       }

@@ -13,14 +13,17 @@ fi
 if [[ -z $pane ]]; then
     cwd=$(jq -r '.cwd // empty' <<< "$payload")
     [[ -n $cwd ]] || exit 0
-    mapfile -t panes < <(
+    # tmux reports resolved paths (macOS /var is /private/var).
+    cwd=$(cd "$cwd" 2>/dev/null && pwd -P) || exit 0
+    panes=$(
         tmux list-panes -a -F $'#{pane_id}\t#{pane_current_path}' 2>/dev/null |
             while IFS=$'\t' read -r candidate directory; do
                 [[ $directory == "$cwd" ]] && printf '%s\n' "$candidate"
             done
     )
-    [[ ${#panes[@]} == 1 ]] || exit 0
-    pane=${panes[0]}
+    # A single match only; macOS bash 3.2 has no mapfile.
+    [[ -n $panes && $panes != *$'\n'* ]] || exit 0
+    pane=$panes
 fi
 
 if [[ $state == pre-tool ]]; then
