@@ -30,8 +30,9 @@ Symlink the shared Claude Code config into `~/.claude/`:
   ln -sf ~/code/dotfiles/claude/hooks ~/.claude/hooks
 </pre>
 
-Machine-specific overrides (extra permissions, local tools) go in
-`~/.claude/settings.local.json` which is not tracked in this repo.
+The same `settings.json` serves the Mac and the VPS, so hook commands use `~`
+paths. Claude Code has no user-level local settings file
+(`~/.claude/settings.local.json` only applies to sessions started in `~`).
 
 SYSTEMD USER SERVICES
 ---------------------

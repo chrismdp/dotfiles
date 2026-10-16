@@ -32,6 +32,8 @@
 
 ## Engineering Practice
 
+- **Rails migrations may require a server restart before debugging further**: If a migration is marked up and the DB/schema contains the column, but the app still reports an unknown attribute/missing setter or otherwise behaves as if the old schema is loaded, restart Rails/Spring/the dev server and re-test before patching migrations or manually changing the DB.
+
 - **Bug fixes: grep every callsite of the broken pattern before declaring done**: If a bug is caused by a missing/wrong argument to a shared API (e.g. a package method, a helper), grep the whole codebase for every call to that API and fix them all in the same PR. One callsite fixed and three silently broken is worse than none fixed — users can't tell which buttons work. The reported symptom is usually the most visible instance, not the only one.
 
 How Chris wants software built, on every codebase. Load `/engineering` for the full doctrine, rationale, and evidence.
@@ -81,3 +83,7 @@ How Chris wants software built, on every codebase. Load `/engineering` for the f
 - **Verify bulk operations by reading results.** After sed, Python replace, or migrations, read a sample file's actual content. Do not trust exit codes.
 - **YAML frontmatter: parse, don't string-replace.** Split on `---` delimiters and modify only the frontmatter. Whole-file string replace corrupts body text.
 - **Renumber numbered lists after insertion or deletion**, in the same edit. Two consecutive items numbered "5." is a bug.
+
+## Slack Safety
+
+**NEVER post Slack messages directly** using `slack_send_message`. Always use `slack_send_message_draft` (or equivalent draft flow) for Chris to review, even for replies in his own self-DM notes thread. Only post directly if Chris explicitly says "post it" / "send it now". This applies even when asked to "write up" or "clean up" thoughts already in a thread — writing up is not the same as posting.
