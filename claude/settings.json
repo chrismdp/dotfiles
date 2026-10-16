@@ -9,10 +9,6 @@
   },
   "permissions": {
     "allow": [
-      "Monitor(until *)",
-      "Monitor(tail *)",
-      "Bash",
-      "Monitor",
       "WebSearch",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_run_code",
@@ -30,6 +26,7 @@
       "mcp__perplexity__perplexity_search",
       "mcp__perplexity__perplexity_research",
       "mcp__perplexity__perplexity_reason",
+      "mcp__posthog__:*",
       "Bash(codex exec *)"
     ],
     "deny": [
@@ -39,6 +36,8 @@
       "Bash(*lockbox-prompt*)",
       "Bash(gog gmail send:*)",
       "Agent(lockbox:delegate)",
+      "mcp__claude_ai_Slack__slack_send_message",
+      "mcp__claude_ai_Slack__slack_schedule_message",
       "mcp__claude_ai_Gmail__send_message",
       "mcp__claude_ai_Gmail__reply",
       "mcp__claude_ai_Gmail__forward"
@@ -177,31 +176,37 @@
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
   "autoMode": {
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push --force*):master — force-pushing a protected default branch",
+      "Bash(heroku pg:*):production — destructive Heroku Postgres operations against a production app"
+    ],
     "environment": [
       "### Org-wide",
-      "**Organization**: None configured",
-      "**Cloud provider(s)**: None configured",
-      "**Repository visibility**: private (chrismdp/vault, confirmed via gh)",
+      "**Organization**: lollipopai (GitHub org for Cherrypick work repos); chrismdp (personal GitHub account)",
+      "**Cloud provider(s)**: Google Cloud (BigQuery, project data-analytics-stack); Heroku (Cherrypick app hosting)",
+      "**Repository visibility**: private, except chrismdp/dotfiles which is public — never commit secrets or personal data there",
       "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
-      "**Secrets management**: 1Password (op CLI, vault \"AI Agent\"); `~/.secret_env` is self-generating from `~/.secret_env.tpl` — never write resolved secret values into it directly",
-      "**Default / protected branches**: main (default); Rulesets not queryable here, Protected branches: none listed — treat as possibly protected via ruleset rather than confirmed unprotected",
-      "**CI/CD deploy targets**: None configured",
+      "**Secrets management**: 1Password (op CLI, vault \"AI Agent\"); `~/.secret_env` is self-generating from `~/.secret_env.tpl` — never write resolved secret values into it directly. Cherrypick repos use git-crypt and Rails credentials; service-account keys such as creds.json stay untracked",
+      "**Default / protected branches**: `master` in lollipopai repos (protected); `main` in ~/vault — treat default branches as protected",
+      "**CI/CD deploy targets**: lollipopai/lollipop-alpha master auto-deploys to production on green CI (Heroku); dbt models build to BigQuery from CI",
       "**Network posture**: None configured",
-      "**Source control**: The trusted repo (chrismdp/vault, private, GitHub) and its remote only — no additional orgs configured",
-      "**Trusted internal domains**: vps.chrismdp.com, airskills.ai, agentaccelerator.ai (hosts contacted repeatedly from this project's transcripts)",
+      "**Host containment**: None — two ordinary machines: a macOS laptop (Cherrypick work) and a Linux VPS (vault and agents), both with open internet",
+      "**Source control**: the user's repos under github.com/lollipopai and github.com/chrismdp and their origin remotes",
+      "**Trusted internal domains**: vps.chrismdp.com, airskills.ai, agentaccelerator.ai, lollipop.metabaseapp.com",
       "**Trusted cloud buckets**: None configured",
-      "**Key internal services**: gog/gws (Google Workspace CLI), airskills (skill-sync CLI), Review Board, Claude Remote (Google Drive shared folder), Xero (business finance), YNAB (personal finance), Monzo",
-      "**Internal package registry**: None configured",
-      "**Sensitive data locations & audiences**: vault notes and files holding personal, family, client, or financial data (e.g. client structure notes under `~/vault/<Client Name>.md`, decision logs, financial/Xero/YNAB records, `.env`); share only with audiences cleared per the client-boundary rules in CLAUDE.md (client-facing drafts are advisory-only, full detail reserved for Chris)",
+      "**Key internal services**: gog/gws (Google Workspace CLI), airskills (skill sync), Review Board, Claude Remote (Google Drive shared folder), Xero, YNAB, Monzo; Cherrypick: alpha.lollipopai.com, BigQuery, Metabase (mb CLI)",
+      "**Internal package registry**: packager.dev (Avo gem server, Cherrypick alpha only)",
+      "**Sensitive data locations & audiences**: vault notes holding personal, family, client or financial data; Cherrypick production data (BigQuery marts, production database dumps) holds real customer data; `.env` files and credential files. Share only with audiences cleared for that data, per CLAUDE.md client-boundary rules",
       "**Data retention / declassification**: None configured",
-      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
-      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Sensitive remote targets**: any namespace, host, app or container whose name carries `prod` or `production` as a whole word or name segment; the Heroku production app behind alpha.lollipopai.com",
+      "**Protected deployment namespaces / environments**: Cherrypick production (Heroku, auto-deployed from master)",
       "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
       "### User-specific",
-      "**Primary use of Claude Code**: personal/hobby knowledge management (Obsidian PKM vault) — notes, content creation, automation scripts, and light business/client admin",
-      "**Trusted repo**: `~/vault` (chrismdp/vault on GitHub, private) and its configured remote `origin`",
-      "**Org-specific CLIs**: gog / gws (Google Workspace), airskills (skill sync), xero_api.py, monzo_api.py, ynab-related scripts — routine under this vault's `scripts/` prefix",
-      "**routine under ~/vault/ prefix**: vault note edits, project files under `projects/`, content under `content/`, and scripts under `scripts/` are routine working areas for this user"
+      "**Primary use of Claude Code**: on the Mac, software development and data analysis for Cherrypick (Rails app lollipop-alpha, dbt, BigQuery, Metabase); on the VPS, the Obsidian vault — notes, content, automation scripts and light business admin",
+      "**Trusted repos**: ~/code/* repos (lollipopai and chrismdp), `~/vault` (chrismdp/vault, private) and ~/code/dotfiles, each with its origin remote",
+      "**Org-specific CLIs**: gog / gws, airskills, xero_api.py, monzo_api.py, ynab scripts, mb (Metabase), bq / google-cloud-bigquery, heroku, gh, codex",
+      "**Routine working areas**: vault notes, projects/, content/ and scripts/ under ~/vault; feature branches named {initials}/{description} (e.g. cp/...) in Cherrypick repos"
     ]
   }
 }
