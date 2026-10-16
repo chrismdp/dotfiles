@@ -27,7 +27,10 @@
       "mcp__perplexity__perplexity_research",
       "mcp__perplexity__perplexity_reason",
       "mcp__posthog__:*",
-      "Bash(codex exec *)"
+      "Bash(codex exec *)",
+      "mcp__claude_ai_Jevmail_ben__list_draft_questions",
+      "mcp__claude_ai_Jevmail_ben__score_draft",
+      "mcp__claude_ai_Jevmail_ben__get_scored_draft"
     ],
     "deny": [
       "AskUserQuestion"
