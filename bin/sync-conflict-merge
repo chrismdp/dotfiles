@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+"""Merge Syncthing conflict copies back into the notes they came from.
+
+When two devices change the same note before Syncthing catches up, it keeps
+one under the real name and writes the other alongside as
+`<stem>.sync-conflict-<YYYYMMDD>-<HHMMSS>-<device><ext>`. vault-sync.sh runs
+this before staging, so both edits survive and the conflict copy never
+reaches git.
+
+For each conflict copy under the vault (skipping .git/):
+  1. Save the original and the copy to the state dir, so any merge can be undone.
+  2. A copy identical to its original is simply removed.
+  3. Choose a base and merge with `git merge-file --diff3 ours base theirs`.
+  4. Where git reports a conflict with an empty base, both sides only added
+     lines at the same place: keep both, ours first, lines they share once.
+  5. Send any remaining conflict blocks, each with up to three lines of
+     context, to Sonnet in one call, and splice its replacements in.
+The model never sees the whole file. Anything that cannot be merged (a failed,
+unparsable or incomplete reply, a conflict marker left in it, a timeout) is
+left exactly as it was. One line per conflict goes to stdout, naming the method
+(clean, llm or skipped) and the base; nothing is printed when there are none.
+
+Choosing the base
+-----------------
+HEAD is the wrong base: vault-sync commits every five minutes, so HEAD usually
+already holds one side's edit, and git would return the other side as a
+"clean" merge that silently drops it. The version both devices started from
+is almost always committed, though, because Syncthing propagates within
+seconds. So the base comes from the file's last 50 committed versions, newest
+first, with duplicates dropped:
+
+  For each side, find the nearest committed version: the fewest lines, counted
+  as multisets, that one has and the other lacks (on a tie, the newer). The
+  base is the older of the two.
+
+On the VPS the history is linear, so the newest version both sides descend
+from is the older of their two nearest versions. One side is usually HEAD
+itself; the stale side is nearest to the version it started from, because
+every later commit adds the other side's edits to the distance.
+
+Scoring candidates jointly does not work. With
+|lines(B) - lines(ours)| + |lines(B) - lines(theirs)|, a committed edit that
+replaces a line swaps one missing line for another, so the true base, each
+later commit and HEAD all tie, and "newest on a tie" picks HEAD: the very bug
+above. A base that is too old costs at most a model call: changes both sides
+share merge cleanly, and the rest become conflicts. A base that is too new
+loses an edit without a word.
+
+A file with no history gets a base made of the lines common to both versions,
+in order. Every difference then becomes an insertion, so it merges with no
+model call: every line from either side survives, and a line one side
+deleted or reworded comes back alongside the new wording, which is accepted.
+
+    sync-conflict-merge <vault>
+
+Environment:
+  SYNC_CONFLICT_STATE_DIR  where inputs are saved (default ~/.local/state/sync-conflicts)
+  SYNC_MERGE_CMD           model command, read from stdin (default: claude -p, Sonnet, no tools)
+  SYNC_MERGE_TIMEOUT       seconds before the model is abandoned (default 300)
+"""
+
+import difflib
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+from collections import Counter
+from datetime import datetime
+from pathlib import Path
+
+CONFLICT = re.compile(
+    r"^(?P<stem>.*)\.sync-conflict-\d{8}-\d{6}-[A-Z0-9]{7}(?P<ext>\.[^.]*)?$")
+DEFAULT_STATE_DIR = Path.home() / ".local" / "state" / "sync-conflicts"
+DEFAULT_TIMEOUT = 300  # a hung model would hold vault-sync's lock and stop every backup
+HISTORY = 50           # committed versions considered as the base
+CONTEXT = 3            # lines either side of a conflict shown to the model
+
+# git's markers, made long enough that no line of a note can be mistaken for one.
+MARKER_SIZE = 40
+OPEN = b"<" * MARKER_SIZE + b" ours"
+MIDDLE = b"|" * MARKER_SIZE + b" base"
+SPLIT = b"=" * MARKER_SIZE
+CLOSE = b">" * MARKER_SIZE + b" theirs"
+# Any conflict marker git could write, at its default size or more.
+MARKER_LINE = re.compile(r"^(?:<{7}|\|{7}|={7}|>{7})")
+
+SYSTEM_PROMPT = (
+    "You resolve merge conflicts in a text file. "
+    "Reply only in the exact format you are asked for.")
+
+PROMPT = """\
+Two devices edited the file {path} before they synced. git merged everything \
+else; the {count} conflict(s) below remain. Each shows a few lines before and \
+after it for context, the base lines both devices started from, and each \
+device's version of those lines.
+
+For each conflict, write the lines that replace it:
+- Keep every addition and edit from both versions. Never drop content because one version lacks it.
+- Where the versions word the same thing differently, keep both wordings, unless one simply extends the other; then keep the fuller one once.
+- Keep the file's existing format.
+- Do not repeat the context lines: they stay where they are.
+
+Reply with exactly {count} block(s) in this form and nothing else, no commentary:
+<resolution 1>
+the lines that replace conflict 1
+</resolution 1>
+
+{conflicts}"""
+
+CONFLICT_PROMPT = """\
+<conflict {n}>
+<before>
+{before}</before>
+<base>
+{base}</base>
+<version_a>
+{ours}</version_a>
+<version_b>
+{theirs}</version_b>
+<after>
+{after}</after>
+</conflict {n}>
+"""
+
+RESOLUTION = re.compile(r"\s*<resolution (\d+)>\n(.*?)^</resolution \1>[ \t]*$",
+                        re.DOTALL | re.MULTILINE)
+
+
+class Skip(Exception):
+    """Leave this conflict alone; the message says why."""
+
+
+class Block:
+    """One conflict git could not merge: each side's lines and the base's."""
+
+    def __init__(self):
+        self.ours, self.base, self.theirs = [], [], []
+
+
+def original_for(conflict):
+    match = CONFLICT.match(conflict.name)
+    if not match:
+        raise Skip("unrecognised conflict file name")
+    return conflict.with_name(match["stem"] + (match["ext"] or ""))
+
+
+def find_conflicts(vault):
+    for root, dirs, files in os.walk(vault):
+        dirs[:] = sorted(d for d in dirs if d != ".git")
+        for name in sorted(files):
+            if ".sync-conflict-" in name:
+                yield Path(root) / name
+
+
+def read_utf8(path):
+    data = path.read_bytes()
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError:
+        raise Skip(f"not UTF-8 text: {path.name}") from None
+    return data
+
+
+def save_inputs(run_dir, vault, *paths):
+    for path in paths:
+        target = run_dir / path.relative_to(vault)
+        # A second conflict on the same note must not overwrite the true original.
+        if not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+
+
+def lines(data):
+    return data.splitlines(keepends=True)
+
+
+def committed_versions(vault, rel):
+    """The file's last HISTORY committed contents, newest first, without repeats."""
+    log = subprocess.run(
+        ["git", "-C", str(vault), "log", "--format=%H", "-n", str(HISTORY), "--", str(rel)],
+        capture_output=True)
+    versions, seen = [], set()
+    for sha in log.stdout.decode().split():
+        show = subprocess.run(["git", "-C", str(vault), "show", f"{sha}:./{rel}"],
+                              capture_output=True)
+        if show.returncode == 0 and show.stdout not in seen:
+            seen.add(show.stdout)
+            versions.append((sha[:7], show.stdout))
+    return versions
+
+
+def distance(a, b):
+    """Lines one multiset has that the other lacks, counted both ways."""
+    return sum((a - b).values()) + sum((b - a).values())
+
+
+def choose_base(vault, rel, ours, theirs):
+    """Return (base content, name of the base for the log)."""
+    versions = committed_versions(vault, rel)
+    if not versions:
+        return common_lines(ours, theirs), "common-lines"
+    candidates = [Counter(lines(content)) for _, content in versions]
+
+    def nearest(side):
+        side = Counter(lines(side))
+        return min(range(len(candidates)), key=lambda i: (distance(candidates[i], side), i))
+
+    # versions run newest first, so the larger index is the older commit
+    sha, content = versions[max(nearest(ours), nearest(theirs))]
+    return content, sha
+
+
+def common_lines(ours, theirs):
+    """The lines both versions share, in order."""
+    a, b = lines(ours), lines(theirs)
+    matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    return b"".join(line for match in matcher.get_matching_blocks()
+                    for line in a[match.a:match.a + match.size])
+
+
+def merge_file(ours, base, theirs):
+    """Run git merge-file. Returns its output split into plain lines and Blocks."""
+    with tempfile.TemporaryDirectory() as scratch:
+        paths = []
+        for name, data in (("ours", ours), ("base", base), ("theirs", theirs)):
+            path = Path(scratch) / name
+            path.write_bytes(data)
+            paths.append(str(path))
+        result = subprocess.run(
+            ["git", "merge-file", "-p", "--diff3", f"--marker-size={MARKER_SIZE}",
+             "-L", "ours", "-L", "base", "-L", "theirs", *paths], capture_output=True)
+    if result.returncode < 0 or result.returncode > 127:
+        detail = result.stderr.decode(errors="replace").strip()
+        raise Skip(f"git merge-file failed: {detail}")
+    return parse_merge(result.stdout)
+
+
+def parse_merge(output):
+    segments, block, section = [], None, None
+    for line in lines(output):
+        marker = line.rstrip(b"\n")
+        if block is None and marker == OPEN:
+            block, section = Block(), "ours"
+        elif block is not None and section == "ours" and marker == MIDDLE:
+            section = "base"
+        elif block is not None and section == "base" and marker == SPLIT:
+            section = "theirs"
+        elif block is not None and section == "theirs" and marker == CLOSE:
+            segments.append(block)
+            block = None
+        elif block is not None:
+            getattr(block, section).append(line)
+        else:
+            segments.append(line)
+    if block is not None:
+        raise Skip("could not read git's conflict markers")
+    return segments
+
+
+def merge_command():
+    override = os.environ.get("SYNC_MERGE_CMD")
+    if override:
+        return shlex.split(override)
+    # Cron's PATH has no ~/.local/bin, which is where claude installs itself.
+    claude = shutil.which("claude") or str(Path.home() / ".local" / "bin" / "claude")
+    return [claude, "-p", "--model", "sonnet",
+            "--tools", "",              # no tools: it can read nothing and write nothing
+            "--strict-mcp-config",      # and no MCP servers either
+            "--safe-mode",              # no hooks, CLAUDE.md, skills or plugins
+            "--no-session-persistence",  # keep merges out of the session logs
+            "--system-prompt", SYSTEM_PROMPT]
+
+
+def text(chunk):
+    return b"".join(chunk).decode("utf-8", errors="replace")
+
+
+def build_prompt(rel, segments, conflicts):
+    parts = []
+    for n, index in enumerate(conflicts, 1):
+        before, after = [], []
+        for i in range(index - 1, -1, -1):
+            if isinstance(segments[i], Block) or len(before) == CONTEXT:
+                break
+            before.insert(0, segments[i])
+        for i in range(index + 1, len(segments)):
+            if isinstance(segments[i], Block) or len(after) == CONTEXT:
+                break
+            after.append(segments[i])
+        block = segments[index]
+        parts.append(CONFLICT_PROMPT.format(
+            n=n, before=text(before), base=text(block.base), ours=text(block.ours),
+            theirs=text(block.theirs), after=text(after)))
+    return PROMPT.format(path=rel, count=len(conflicts), conflicts="\n".join(parts))
+
+
+def parse_reply(reply, count):
+    """The replacement for each conflict, in order, or Skip if the reply is off."""
+    replacements, position = [], 0
+    for n in range(1, count + 1):
+        match = RESOLUTION.match(reply, position)
+        if not match or int(match[1]) != n:
+            raise Skip(f"model reply did not resolve conflict {n} of {count} in the format asked")
+        body = match[2]
+        if any(MARKER_LINE.match(line) for line in body.splitlines()):
+            raise Skip(f"model left a conflict marker in resolution {n}")
+        replacements.append(body.encode())
+        position = match.end()
+    if reply[position:].strip():
+        raise Skip("model reply had text beyond the resolutions asked for")
+    return replacements
+
+
+def ask_model(prompt, count):
+    timeout = float(os.environ.get("SYNC_MERGE_TIMEOUT", DEFAULT_TIMEOUT))
+    command = merge_command()
+    with tempfile.TemporaryDirectory() as scratch:  # never the vault, so no project config
+        try:
+            result = subprocess.run(command, input=prompt.encode(), capture_output=True,
+                                    timeout=timeout, cwd=scratch)
+        except FileNotFoundError:
+            raise Skip(f"merge command not found: {command[0]}") from None
+        except subprocess.TimeoutExpired:
+            raise Skip(f"merge command timed out after {timeout:g}s") from None
+    if result.returncode != 0:
+        detail = result.stderr.decode(errors="replace").strip().splitlines()
+        raise Skip(f"merge command failed (exit {result.returncode})"
+                   + (f": {detail[-1]}" if detail else ""))
+    return parse_reply(result.stdout.decode("utf-8", errors="replace"), count)
+
+
+def both_sides(block):
+    """Both sides' lines, lines they share once, ours first where they differ."""
+    a, b = block.ours, block.theirs
+    kept = []
+    matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    for tag, a1, a2, b1, b2 in matcher.get_opcodes():
+        kept += a[a1:a2]
+        if tag in ("insert", "replace"):
+            kept += b[b1:b2]
+    return kept
+
+
+def merge(rel, ours, base, theirs):
+    """Three-way merge. Returns (merged bytes, conflicts kept both sides, conflicts by model)."""
+    segments, kept_both = [], 0
+    for segment in merge_file(ours, base, theirs):
+        # Both sides only added lines here: keeping both loses nothing and needs no judgement.
+        if isinstance(segment, Block) and not segment.base:
+            segments += both_sides(segment)
+            kept_both += 1
+        else:
+            segments.append(segment)
+    conflicts = [i for i, s in enumerate(segments) if isinstance(s, Block)]
+    if conflicts:
+        replacements = ask_model(build_prompt(rel, segments, conflicts), len(conflicts))
+        for index, replacement in zip(conflicts, replacements):
+            segments[index] = replacement
+    merged = b"".join(segments)
+    # git ends every line inside a conflict with a newline; keep the note's own ending.
+    if (kept_both or conflicts) and not ours.endswith(b"\n") and merged.endswith(b"\n"):
+        merged = merged[:-1]
+    return merged, kept_both, len(conflicts)
+
+
+def resolve(vault, conflict, run_dir):
+    """Merge one conflict copy into its original. Returns (method, reason)."""
+    original = original_for(conflict)
+    if not original.is_file():
+        raise Skip(f"original missing: {original.relative_to(vault)}")
+    ours, theirs = read_utf8(original), read_utf8(conflict)
+    rel = original.relative_to(vault)
+
+    save_inputs(run_dir, vault, original, conflict)
+    if ours == theirs:
+        conflict.unlink()
+        return "clean", f"identical to {rel}; copy removed; inputs saved in {run_dir}"
+
+    base, base_name = choose_base(vault, rel, ours, theirs)
+    try:
+        merged, kept_both, by_model = merge(rel, ours, base, theirs)
+    except Skip as skip:
+        raise Skip(f"{skip} (base {base_name}); both files left as they were") from None
+
+    original.write_bytes(merged)
+    conflict.unlink()
+    detail = f"base {base_name}"
+    if kept_both:
+        detail += f", both sides kept at {kept_both} insertion(s)"
+    if by_model:
+        detail += f", {by_model} conflict(s) resolved by the model"
+    return ("llm" if by_model else "clean",
+            f"merged into {rel} ({detail}); inputs saved in {run_dir}")
+
+
+def log(method, conflict, reason):
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{stamp} {method} {conflict}: {reason}", flush=True)
+
+
+def main(argv):
+    if len(argv) != 2:
+        raise SystemExit(__doc__)
+    vault = Path(argv[1]).expanduser().resolve()
+    state = Path(os.environ.get("SYNC_CONFLICT_STATE_DIR") or DEFAULT_STATE_DIR)
+    run_dir = state / datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    for conflict in find_conflicts(vault):
+        rel = conflict.relative_to(vault)
+        try:
+            method, reason = resolve(vault, conflict, run_dir)
+        except Skip as skip:
+            method, reason = "skipped", str(skip)
+        except Exception as error:  # one bad file must never stop the rest
+            method, reason = "skipped", f"{type(error).__name__}: {error}"
+        log(method, rel, reason)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

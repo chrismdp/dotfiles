@@ -25,6 +25,12 @@ trap cleanup EXIT
 
 cd "$VAULT" || { log "ERROR: cd failed"; exit 1; }
 
+# Fold Syncthing conflict copies back into their notes before anything is staged.
+# Once per run, not per retry: a retry only redoes the pull and push. Its own log,
+# because $LOG keeps one line. A resolver failure must never stop the backup.
+"$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/sync-conflict-merge" "$VAULT" \
+    >> ~/bin/sync-conflict-merge.log 2>&1 || true
+
 sync_once() {
     # Stage and commit
     git add -A
