@@ -6,6 +6,16 @@ transcripts with source metadata and minute markers in
 `~/vault/youtube-transcripts/`, then copies them over SSH to
 `vps:~/vault/youtube-transcripts/`.
 
+`vps` is an SSH alias in `~/.ssh/config`, which keeps the server's real
+hostname out of this public repo. `vps.chrismdp.com` sits behind Cloudflare
+and does not accept SSH, so the alias points at the provider hostname:
+
+```
+Host vps
+  HostName <provider hostname>
+  User cp
+```
+
 Music, videos under four minutes and obvious gameplay/playthrough titles are
 skipped. Reviews and design discussions are retained. `SHORT_EXCEPTIONS` in
 `sync.sh` includes the 82-second Claude Dashboards and Claude Motion announcement.
