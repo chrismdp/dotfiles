@@ -221,6 +221,37 @@ class TestMergedWithoutTheModel:
         assert "clean" in result.stdout
         assert "base common-lines" in result.stdout
 
+    def test_a_half_typed_line_gives_way_to_the_fuller_one(self, vault, env, model):
+        # 2026-10-16: Chris was mid-sentence on the laptop while an agent appended
+        # to the same note on the VPS. Each side held a different snapshot of his
+        # typing, and keeping both put the half-typed line in twice.
+        commit(vault, {"Note.md": BASE}, env)
+        write(vault, "Note.md",
+              BASE + "## 11:46\n\n- The pipeline is stalling, but it's happening\n\n")
+        write(vault, conflict_name("Note.md"),
+              BASE + "## 11:46\n\n- The pipeline is stalling - \n\n## 10:49 Agent\n\nbody\n")
+
+        run(vault, env, model)
+
+        assert (vault / "Note.md").read_text() == (
+            BASE + "## 11:46\n\n- The pipeline is stalling, but it's happening\n\n"
+            "## 10:49 Agent\n\nbody\n")
+        assert model.prompts() == []
+
+    def test_older_typing_snapshots_give_way_to_the_finished_lines(self, vault, env, model):
+        commit(vault, {"Note.md": BASE}, env)
+        finished = ("- The pipeline is stalling, but it's happening and targets are up.\n"
+                    "- I want passive income\n- \n")
+        write(vault, "Note.md", BASE + finished)
+        write(vault, conflict_name("Note.md"),
+              BASE + "- The pipeline is stalling, but it's happening\n"
+                     "- The pipeline is stalling - \n")
+
+        run(vault, env, model)
+
+        assert (vault / "Note.md").read_text() == BASE + finished
+        assert model.prompts() == []
+
     def test_a_file_without_a_final_newline_keeps_it_that_way(self, vault, env, model):
         commit(vault, {"Other.md": "x\n"}, env)
         write(vault, "list.txt", "a\nb\nlaptop")

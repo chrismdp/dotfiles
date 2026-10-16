@@ -332,14 +332,35 @@ def ask_model(prompt, count):
     return parse_reply(result.stdout.decode("utf-8", errors="replace"), count)
 
 
+def typed_so_far(line):
+    """A line without the trailing spaces and dangling punctuation of half-finished typing."""
+    return line.decode("utf-8", errors="replace").rstrip().rstrip("-–—:,;").rstrip()
+
+
+def drafts_dropped(lines, others):
+    """`lines` without any that only begin a longer line in `others`."""
+    longer = [typed_so_far(o) for o in others]
+    return [line for line in lines
+            if not (start := typed_so_far(line))
+            or not any(o != start and o.startswith(start) for o in longer)]
+
+
 def both_sides(block):
-    """Both sides' lines, lines they share once, ours first where they differ."""
+    """Both sides' lines, lines they share once, ours first where they differ.
+
+    Where the sides differ at the same spot, a line that only begins one on the
+    other side is an older snapshot of someone still typing, not new content:
+    keeping it too put half-typed lines into a daily note twice (2026-10-16).
+    """
     a, b = block.ours, block.theirs
     kept = []
     matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
     for tag, a1, a2, b1, b2 in matcher.get_opcodes():
+        if tag == "replace":
+            kept += drafts_dropped(a[a1:a2], b[b1:b2]) + drafts_dropped(b[b1:b2], a[a1:a2])
+            continue
         kept += a[a1:a2]
-        if tag in ("insert", "replace"):
+        if tag == "insert":
             kept += b[b1:b2]
     return kept
 
