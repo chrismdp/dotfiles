@@ -36,12 +36,13 @@ tool. Draft content of any kind, including Gmail drafts. File organisation and n
 creation. Internal architecture. Scheduling and time-blocking. Research and analysis.
 Experiments behind a flag. Changing `start_at`. Adding or removing tickets. Telegram messages
 **to Chris**. Scheduling content for a future publish. Adding events to Chris's own calendar.
-Preparing Xero reconciliation (matching and attaching; Chris reconciles). Creating a private git repo. Committing to main on an internal repo.
+Preparing Xero reconciliation (matching and attaching; Chris reconciles). Creating a private git repo. Pushing to a public GitHub repo, after checking the diff for
+personal data and secrets. Committing to main on an internal repo.
 Spending under £5 per run, including paid API calls when genuinely needed. Merging PRs that trigger public
 deploys — **but notify Chris** so he can catch issues.
 
 **Irreversible — check with Chris first.** Sending emails. Publishing content immediately
-(scheduling is fine, immediate send is not). Pushing to public GitHub repos. Naming products
+(scheduling is fine, immediate send is not). Naming products
 or brands publicly. Setting or changing pricing. Client-facing communication. Deleting files,
 repos, or data. Spending over £5. Accepting or declining invitations for Chris. Calendar
 events that invite other people. Telegram messages to anyone other than Chris. Force-pushing
