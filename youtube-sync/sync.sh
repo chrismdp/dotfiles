@@ -120,18 +120,14 @@ begin
     log("HISTORY #{browser}: #{history.lines.length} entries")
     history.lines.map { |line| line.chomp.split("\t", 3) + [browser] }
   end.uniq { |row| row.first }
-  log("FOUND #{rows.length} unique videos across both profiles")
   rows.each do |id, title, _channel, browser|
     ytdlp = YTDLP + ['--cookies-from-browser', browser]
     raise "Unexpected history id: #{id.inspect}" unless id && id.match?(/\A[A-Za-z0-9_-]{11}\z/)
-    log("FOUND #{id} #{title}")
     output_path = File.join(BASE, 'out', "#{id}.md")
     if seen.include?(id) && !(SHORT_EXCEPTIONS.include?(id) && !File.exist?(output_path))
-      log("SKIP #{id}: already seen")
       next
     end
     if gameplay?(title.to_s)
-      log("SKIP #{id} #{title}: gameplay / playthrough")
       # Remove only this job's unshipped output if preferences changed mid-run.
       File.delete(output_path) if File.exist?(output_path)
       staged.add(id)
@@ -153,7 +149,6 @@ begin
                  'YouTube Short'
                end
       if reason
-        log("SKIP #{id} #{title}: #{reason}")
         staged.add(id)
         next
       end
