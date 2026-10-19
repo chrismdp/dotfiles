@@ -26,7 +26,7 @@ BASE = "# Note\n\nline one\nline two\nline three\nline four\nline five\n"
 NUMBERED = "".join(f"line {n:02d}\n" for n in range(1, 41))
 
 
-def conflict_name(original):
+def conflict_name(original, stamp=STAMP):
     """Where Syncthing puts the losing copy of `original`.
 
     Syncthing splits on Go's filepath.Ext: everything from the last dot, so
@@ -35,7 +35,7 @@ def conflict_name(original):
     path = Path(original)
     dot = path.name.rfind(".")
     stem, ext = (path.name[:dot], path.name[dot:]) if dot >= 0 else (path.name, "")
-    return str(path.with_name(f"{stem}.sync-conflict-{STAMP}{ext}"))
+    return str(path.with_name(f"{stem}.sync-conflict-{stamp}{ext}"))
 
 
 @pytest.fixture
@@ -144,7 +144,8 @@ def run(vault, env, model=None, **extra):
 def saved(env):
     root = Path(env["SYNC_CONFLICT_STATE_DIR"])
     return {str(p.relative_to(run_dir)): p.read_text()
-            for run_dir in root.iterdir() for p in run_dir.rglob("*") if p.is_file()}
+            for run_dir in root.iterdir() for p in run_dir.rglob("*")
+            if p.is_file() and not p.name.endswith(".base")}
 
 
 class TestMergedWithoutTheModel:
@@ -290,6 +291,61 @@ class TestMergedWithoutTheModel:
 
         assert result.stdout == ""
         assert not Path(env["SYNC_CONFLICT_STATE_DIR"]).exists()
+
+
+class TestRepeatedConflicts:
+    OPENING = "# Field notes\n\nAn opening thought.\n"
+    AGENT_SECTION = "\n## 09:23 Sources processed\n\n- Example source\n"
+    TYPING = [f"User thought {n}.\n" for n in range(1, 6)]
+
+    def first_two_conflicts(self, vault, env, model):
+        first = commit(vault, {"Note.md": self.OPENING}, env)
+        previous_merged = self.OPENING + self.AGENT_SECTION
+        commit(vault, {"Note.md": previous_merged}, env)
+        for count, stamp in [
+            (2, "20261019-082512-LAPTOP7"),
+            (4, "20261019-083328-LAPTOP7"),
+        ]:
+            write(vault, "Note.md", self.OPENING + "".join(self.TYPING[:count]))
+            name = conflict_name("Note.md", stamp)
+            write(vault, name, previous_merged)
+            run(vault, env, model)
+            previous_merged = (vault / "Note.md").read_text()
+            latest = commit(vault, {"Note.md": previous_merged}, env)
+        return first, latest, previous_merged
+
+    def test_same_device_uses_the_first_base_throughout_the_series(self, vault, env, model):
+        first, _, previous_merged = self.first_two_conflicts(vault, env, model)
+        write(vault, "Note.md", self.OPENING + "".join(self.TYPING))
+        name = conflict_name("Note.md", "20261019-083602-LAPTOP7")
+        write(vault, name, previous_merged)
+
+        result = run(vault, env, model)
+        merged = (vault / "Note.md").read_text()
+        assert self.AGENT_SECTION in merged
+        assert all(line in merged for line in self.TYPING)
+        assert not list(vault.glob("*.sync-conflict-*"))
+        assert f"base {first[:7]}, from series since 08:25:12" in result.stdout
+        assert model.prompts() == []
+
+    @pytest.mark.parametrize("third_stamp", [
+        "20261019-083602-OTHER77",
+        "20261020-083329-LAPTOP7",
+    ], ids=["different-device", "over-24-hours"])
+    def test_a_different_device_or_gap_uses_the_normal_base(
+            self, vault, env, model, third_stamp):
+        _, latest, previous_merged = self.first_two_conflicts(vault, env, model)
+        write(vault, "Note.md", self.OPENING + "".join(self.TYPING))
+        name = conflict_name("Note.md", third_stamp)
+        write(vault, name, previous_merged)
+
+        result = run(vault, env, model)
+
+        assert (vault / "Note.md").read_text() == self.OPENING + "".join(self.TYPING)
+        assert not (vault / name).exists()
+        assert f"base {latest[:7]}" in result.stdout
+        assert "from series" not in result.stdout
+        assert model.prompts() == []
 
 
 class TestModelResolvesConflicts:

@@ -38,13 +38,20 @@ from is the older of their two nearest versions. One side is usually HEAD
 itself; the stale side is nearest to the version it started from, because
 every later commit adds the other side's edits to the distance.
 
+Repeated conflicts for the same note and device are one series while each is
+within 24 hours of the previous conflict. They show that device did not take
+in the preceding merge, so every merge in the series uses a base no newer than
+the first merge used. Each merge records its base beside its saved inputs. A
+later merge chooses the older of that series base and the normal choice, unless
+the series base has fallen out of the committed history window. The window is
+deliberately generous: a base that is too old costs at most a model call, while
+a base that is too new can silently lose an edit.
+
 Scoring candidates jointly does not work. With
 |lines(B) - lines(ours)| + |lines(B) - lines(theirs)|, a committed edit that
 replaces a line swaps one missing line for another, so the true base, each
 later commit and HEAD all tie, and "newest on a tie" picks HEAD: the very bug
-above. A base that is too old costs at most a model call: changes both sides
-share merge cleanly, and the rest become conflicts. A base that is too new
-loses an edit without a word.
+above.
 
 A file with no history gets a base made of the lines common to both versions,
 in order. Every difference then becomes an insertion, so it merges with no
@@ -68,15 +75,18 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 CONFLICT = re.compile(
-    r"^(?P<stem>.*)\.sync-conflict-\d{8}-\d{6}-[A-Z0-9]{7}(?P<ext>\.[^.]*)?$")
+    r"^(?P<stem>.*)\.sync-conflict-(?P<date>\d{8})-(?P<time>\d{6})-"
+    r"(?P<device>[A-Z0-9]{7})(?P<ext>\.[^.]*)?$")
 DEFAULT_STATE_DIR = Path.home() / ".local" / "state" / "sync-conflicts"
 DEFAULT_TIMEOUT = 300  # a hung model would hold vault-sync's lock and stop every backup
 HISTORY = 50           # committed versions considered as the base
 CONTEXT = 3            # lines either side of a conflict shown to the model
+SERIES_WINDOW = timedelta(hours=24)
+BASE_RECORD_SUFFIX = ".base"
 
 # git's markers, made long enough that no line of a note can be mistaken for one.
 MARKER_SIZE = 40
@@ -173,6 +183,52 @@ def save_inputs(run_dir, vault, *paths):
             shutil.copy2(path, target)
 
 
+def conflict_time(match):
+    """The UTC timestamp encoded in a matched Syncthing conflict name."""
+    return datetime.strptime(match["date"] + match["time"], "%Y%m%d%H%M%S")
+
+
+def save_base(run_dir, vault, conflict, base_ref):
+    """Record the chosen base beside the saved conflict input."""
+    saved_conflict = run_dir / conflict.relative_to(vault)
+    record = saved_conflict.with_name(saved_conflict.name + BASE_RECORD_SUFFIX)
+    record.write_text(base_ref + "\n")
+
+
+def series_base(state, rel, conflict):
+    """Return (first base, first timestamp) for this conflict's active series."""
+    current = CONFLICT.match(conflict.name)
+    if not current or not state.exists():
+        return None
+    current_time = conflict_time(current)
+    previous = []
+    for record in state.rglob(f"*{BASE_RECORD_SUFFIX}"):
+        saved_name = record.name[:-len(BASE_RECORD_SUFFIX)]
+        match = CONFLICT.match(saved_name)
+        relative = record.relative_to(state)
+        if not match or len(relative.parts) < 2 or match["device"] != current["device"]:
+            continue
+        recorded_rel = (Path(*relative.parts[1:-1]) /
+                        (match["stem"] + (match["ext"] or "")))
+        timestamp = conflict_time(match)
+        if recorded_rel != rel or timestamp >= current_time:
+            continue
+        try:
+            base_ref = record.read_text().strip()
+        except (OSError, UnicodeError):
+            continue
+        if base_ref:
+            previous.append((timestamp, base_ref))
+
+    previous.sort()
+    if not previous or current_time - previous[-1][0] > SERIES_WINDOW:
+        return None
+    first = len(previous) - 1
+    while first and previous[first][0] - previous[first - 1][0] <= SERIES_WINDOW:
+        first -= 1
+    return previous[first][1], previous[first][0]
+
+
 def lines(data):
     return data.splitlines(keepends=True)
 
@@ -188,7 +244,7 @@ def committed_versions(vault, rel):
                               capture_output=True)
         if show.returncode == 0 and show.stdout not in seen:
             seen.add(show.stdout)
-            versions.append((sha[:7], show.stdout))
+            versions.append((sha, show.stdout))
     return versions
 
 
@@ -197,20 +253,27 @@ def distance(a, b):
     return sum((a - b).values()) + sum((b - a).values())
 
 
-def choose_base(vault, rel, ours, theirs):
-    """Return (base content, name of the base for the log)."""
+def choose_base(vault, rel, ours, theirs, series_ref=None):
+    """Return (base content, base reference, whether the series chose it)."""
     versions = committed_versions(vault, rel)
     if not versions:
-        return common_lines(ours, theirs), "common-lines"
+        return common_lines(ours, theirs), "common-lines", False
     candidates = [Counter(lines(content)) for _, content in versions]
 
     def nearest(side):
         side = Counter(lines(side))
         return min(range(len(candidates)), key=lambda i: (distance(candidates[i], side), i))
 
-    # versions run newest first, so the larger index is the older commit
-    sha, content = versions[max(nearest(ours), nearest(theirs))]
-    return content, sha
+    # versions run newest first, so the larger index is the older commit.
+    normal = max(nearest(ours), nearest(theirs))
+    chosen, from_series = normal, False
+    if series_ref is not None:
+        series = next((i for i, (sha, _) in enumerate(versions)
+                       if sha == series_ref), None)
+        if series is not None and series >= normal:
+            chosen, from_series = series, True
+    sha, content = versions[chosen]
+    return content, sha, from_series
 
 
 def common_lines(ours, theirs):
@@ -400,7 +463,10 @@ def resolve(vault, conflict, run_dir):
         conflict.unlink()
         return "clean", f"identical to {rel}; copy removed; inputs saved in {run_dir}"
 
-    base, base_name = choose_base(vault, rel, ours, theirs)
+    series = series_base(run_dir.parent, rel, conflict)
+    series_ref = series[0] if series else None
+    base, base_ref, from_series = choose_base(vault, rel, ours, theirs, series_ref)
+    base_name = base_ref if base_ref == "common-lines" else base_ref[:7]
     try:
         merged, kept_both, by_model = merge(rel, ours, base, theirs)
     except Skip as skip:
@@ -408,7 +474,10 @@ def resolve(vault, conflict, run_dir):
 
     original.write_bytes(merged)
     conflict.unlink()
+    save_base(run_dir, vault, conflict, base_ref)
     detail = f"base {base_name}"
+    if from_series:
+        detail += f", from series since {series[1].strftime('%H:%M:%S')}"
     if kept_both:
         detail += f", both sides kept at {kept_both} insertion(s)"
     if by_model:
