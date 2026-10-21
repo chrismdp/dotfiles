@@ -79,4 +79,14 @@ result = await pi.fire({
 });
 assert.strictEqual(result, undefined, "read-only shell inspection remains allowed");
 
+// The run records moved from /tmp to ~/.local/state/agents on 21 Oct 2026.
+for (const path of [
+	"/home/cp/.local/state/agents/agent-dispatch.jsonl",
+	"~/.local/state/agents/agent-stalls.jsonl",
+	"/home/cp/.local/state/agents/telegram-send-audit.jsonl",
+]) {
+	result = await pi.fire({ toolName: "write", input: { path, content: "{}" } });
+	assert.strictEqual(result?.block, true, `evidence record write is blocked: ${path}`);
+}
+
 console.log("protected-paths tests passed");

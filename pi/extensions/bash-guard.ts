@@ -37,7 +37,7 @@ const blockPatterns: RegExp[] = [
 
 // ── ASK: confirm in TTY, block in non-TTY ─────────────────────────────────
 
-const evidencePathRe = String.raw`(?:(?:~|/home/cp)/\.pi/agent/sessions/|(?:~|/home/cp)/\.pi/cost/|/tmp/(?:agent-dispatch|agent-stalls|telegram-send-audit)\.jsonl)`;
+const evidencePathRe = String.raw`(?:(?:~|/home/cp)/\.pi/agent/sessions/|(?:~|/home/cp)/\.pi/cost/|(?:~|/home/cp)/\.local/state/agents/(?:agent-dispatch|agent-stalls|telegram-send-audit)\.jsonl)`;
 
 const evidenceTamperPatterns: RegExp[] = [
   new RegExp(String.raw`(?:^|[\s;&|])rm\b[^;&|\n]*${evidencePathRe}`),

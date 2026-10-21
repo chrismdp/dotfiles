@@ -217,26 +217,28 @@ assert.strictEqual(res?.block, true, "solo delete + git push still blocked headl
 
 // evidence logs are readable but protected against tool-side tampering
 assert.strictEqual(
-  await pi.fire(bash("tail -n 20 /tmp/agent-dispatch.jsonl"), headless),
+  await pi.fire(bash("tail -n 20 ~/.local/state/agents/agent-dispatch.jsonl"), headless),
   undefined,
   "evidence log read allowed",
 );
 assert.strictEqual(
-  await pi.fire(bash("rg -n richard /tmp/agent-dispatch.jsonl"), headless),
+  await pi.fire(bash("rg -n richard ~/.local/state/agents/agent-dispatch.jsonl"), headless),
   undefined,
   "evidence log search allowed",
 );
-res = await pi.fire(bash("echo '{}' >> /tmp/agent-dispatch.jsonl"), headless);
+res = await pi.fire(bash("echo '{}' >> ~/.local/state/agents/agent-dispatch.jsonl"), headless);
 assert.strictEqual(res?.block, true, "append to dispatch evidence blocked");
-res = await pi.fire(bash("bash -c \"echo hi > /tmp/agent-stalls.jsonl\""), headless);
+res = await pi.fire(bash("bash -c \"echo hi > ~/.local/state/agents/agent-stalls.jsonl\""), headless);
 assert.strictEqual(res?.block, true, "nested overwrite to stall evidence blocked");
 res = await pi.fire(bash("truncate -s 0 ~/.pi/agent/sessions/x/y.jsonl"), headless);
 assert.strictEqual(res?.block, true, "session transcript truncate blocked");
 res = await pi.fire(bash("rm ~/.pi/cost/2026-07-09.jsonl"), headless);
 assert.strictEqual(res?.block, true, "cost log rm blocked");
-res = await pi.fire(bash("printf x | tee /tmp/telegram-send-audit.jsonl"), headless);
+res = await pi.fire(bash("printf x | tee ~/.local/state/agents/telegram-send-audit.jsonl"), headless);
 assert.strictEqual(res?.block, true, "send audit tee blocked");
-res = await pi.fire(bash(`~/.claude/skills/telegram/scripts/agent-route.sh --to bella --label "note" "tail /tmp/agent-dispatch.jsonl; do not edit it"`), headless);
+res = await pi.fire(bash("cp /tmp/x /home/cp/.local/state/agents/agent-dispatch.jsonl"), headless);
+assert.strictEqual(res?.block, true, "absolute-path overwrite of dispatch evidence blocked");
+res = await pi.fire(bash(`~/.claude/skills/telegram/scripts/agent-route.sh --to bella --label "note" "tail ~/.local/state/agents/agent-dispatch.jsonl; do not edit it"`), headless);
 assert.strictEqual(res, undefined, "quoted route prose mentioning evidence logs is allowed");
 
 // non-calendar commands unaffected
@@ -283,7 +285,7 @@ res = await pi.fire(bash("gog gmail send --to a@example.com --subject hi"), head
 assert.strictEqual(res?.block, true, "yolo headless: email send still blocked");
 res = await pi.fire(bash("gog calendar delete chris.p@rsons.org ev2"), headless);
 assert.strictEqual(res?.block, true, "yolo headless: shared calendar delete still blocked");
-res = await pi.fire(bash("echo '{}' >> /tmp/agent-dispatch.jsonl"), headless);
+res = await pi.fire(bash("echo '{}' >> ~/.local/state/agents/agent-dispatch.jsonl"), headless);
 assert.strictEqual(res?.block, true, "yolo headless: evidence tampering still blocked");
 
 // TTY: infra ask-tier auto-approves in yolo (git push, curl, pip, systemctl, docker)
@@ -311,7 +313,7 @@ assert.strictEqual(res, undefined, "yolo TTY: email send askable and approvable"
 // TTY: shared calendar and evidence tampering stay hard-blocked
 res = await pi.fire(bash("gog calendar delete chris.p@rsons.org ev2"), tty("Yes — let it run"));
 assert.strictEqual(res?.block, true, "yolo TTY: shared calendar delete still hard-blocked");
-res = await pi.fire(bash("echo '{}' >> /tmp/agent-dispatch.jsonl"), tty("Yes — let it run"));
+res = await pi.fire(bash("echo '{}' >> ~/.local/state/agents/agent-dispatch.jsonl"), tty("Yes — let it run"));
 assert.strictEqual(res?.block, true, "yolo TTY: evidence tampering still hard-blocked");
 
 delete process.env.BASH_GUARD_YOLO;
