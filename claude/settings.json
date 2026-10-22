@@ -30,7 +30,9 @@
       "Bash(codex exec *)",
       "mcp__claude_ai_Jevmail_ben__list_draft_questions",
       "mcp__claude_ai_Jevmail_ben__score_draft",
-      "mcp__claude_ai_Jevmail_ben__get_scored_draft"
+      "mcp__claude_ai_Jevmail_ben__get_scored_draft",
+      "Bash(python3 ~/.claude/skills/transcript/scripts/transcribe_audio.py *)",
+      "Bash(python3 /home/cp/.claude/skills/transcript/scripts/transcribe_audio.py *)"
     ],
     "deny": [
       "AskUserQuestion"
