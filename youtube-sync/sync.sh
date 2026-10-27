@@ -195,6 +195,9 @@ begin
   end
   # Transfer completes before committing ANY new seen IDs. No remote commands
   # other than the rsync receiver; no --delete and no SSH configuration changes.
+  # umask 077 makes the staged files 0600 and rsync keeps that mode on new remote files,
+  # which locks the workflow user out of the vault copies.
+  Dir.glob(File.join(BASE, 'out', '*.md')).each { |f| File.chmod(0o664, f) }
   run('/usr/bin/rsync', '-rt', '--include=*.md', '--exclude=*',
       '-e', '/usr/bin/env -u LC_ALL -u LANG /usr/bin/ssh -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=yes',
       File.join(BASE, 'out') + '/', REMOTE)
