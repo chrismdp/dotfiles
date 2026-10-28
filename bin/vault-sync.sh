@@ -23,6 +23,14 @@ if ! flock -n 9; then
 fi
 trap cleanup EXIT
 
+# Chris's inputs and mail sessions edit and commit the vault under this lock, and record each
+# commit for Undo. A backup mid-session sweeps their changes into its own commit, so wait.
+exec 8>/home/cp/.local/state/w1-process.lock
+if ! flock -n 8; then
+    log "vault: skipped (an inputs or mail session is running)"
+    exit 0
+fi
+
 cd "$VAULT" || { log "ERROR: cd failed"; exit 1; }
 
 # Fold Syncthing conflict copies back into their notes before anything is staged.
