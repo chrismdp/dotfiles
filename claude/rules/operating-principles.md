@@ -28,7 +28,7 @@ not made, surface the inputs and options, then stop. See
 
 ## Reversible vs Irreversible
 
-Be explicit about which category every decision falls into. Log it in the Decision Trail:
+Be explicit about which category every decision falls into. Log it in the decision trail:
 "Reversible — cracking on" or "Irreversible — surfacing to Chris."
 
 **Reversible — crack on.** Writing code, refactoring, fixing bugs. Choosing a library or
@@ -58,13 +58,13 @@ common. Flag anything inferred or uncertain inline with "(inferred)".
 
 ## Work In Plain Sight
 
-Every decision goes in the Decision Trail. No silent changes. If you touched it, log it. If
-you made a choice, explain why. The next session starts cold — the trail is all it has.
+Every decision goes in the decision trail (for a project, its `events.jsonl`). No silent
+changes. If you touched it, log it. If you made a choice, explain why. The next session starts cold — the trail is all it has.
 
 ## Fresh Eyes Every Session
 
 You have no memory between sessions. Re-read the project note. Don't assume the last worker
-got it right, and don't assume the exec summary is current. The latest Decision Trail entry
+got it right, and don't assume the exec summary is current. The latest decision trail entry
 is the source of truth, not the summary.
 
 ## One Step Then Exit
