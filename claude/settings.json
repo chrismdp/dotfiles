@@ -200,7 +200,7 @@
       "**Source control**: the user's repos under github.com/lollipopai and github.com/chrismdp and their origin remotes",
       "**Trusted internal domains**: vps.chrismdp.com, airskills.ai, agentaccelerator.ai, lollipop.metabaseapp.com",
       "**Trusted cloud buckets**: None configured",
-      "**Key internal services**: gog/gws (Google Workspace CLI), airskills (skill sync), Review Board, Claude Remote (Google Drive shared folder), Xero, YNAB, Monzo; Cherrypick: alpha.lollipopai.com, BigQuery, Metabase (mb CLI)",
+      "**Key internal services**: gog/gws (Google Workspace CLI), Review Board, Claude Remote (Google Drive shared folder), Xero, YNAB, Monzo; Cherrypick: alpha.lollipopai.com, BigQuery, Metabase (mb CLI)",
       "**Internal package registry**: packager.dev (Avo gem server, Cherrypick alpha only)",
       "**Sensitive data locations & audiences**: vault notes holding personal, family, client or financial data; Cherrypick production data (BigQuery marts, production database dumps) holds real customer data; `.env` files and credential files. Share only with audiences cleared for that data, per CLAUDE.md client-boundary rules",
       "**Data retention / declassification**: None configured",
@@ -210,7 +210,7 @@
       "### User-specific",
       "**Primary use of Claude Code**: on the Mac, software development and data analysis for Cherrypick (Rails app lollipop-alpha, dbt, BigQuery, Metabase); on the VPS, the Obsidian vault — notes, content, automation scripts and light business admin",
       "**Trusted repos**: ~/code/* repos (lollipopai and chrismdp), `~/vault` (chrismdp/vault, private) and ~/code/dotfiles, each with its origin remote",
-      "**Org-specific CLIs**: gog / gws, airskills, xero_api.py, monzo_api.py, ynab scripts, mb (Metabase), bq / google-cloud-bigquery, heroku, gh, codex",
+      "**Org-specific CLIs**: gog / gws, xero_api.py, monzo_api.py, ynab scripts, mb (Metabase), bq / google-cloud-bigquery, heroku, gh, codex",
       "**Routine working areas**: vault notes, projects/, content/ and scripts/ under ~/vault; feature branches named {initials}/{description} (e.g. cp/...) in Cherrypick repos"
     ]
   }
