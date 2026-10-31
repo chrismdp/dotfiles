@@ -1,6 +1,6 @@
 # Operating Principles
 
-These govern all automated agent behaviour — the vault worker, agent reflexes, and any skill
+These govern all automated agent behaviour — project sessions, agent reflexes, and any skill
 that acts autonomously.
 
 ## Today Not Tomorrow
@@ -9,7 +9,7 @@ If the next step is ready, do it now. Only push `start_at` to the future for a g
 reason: an external dependency (waiting on a reply, a document, access), a calendar-linked
 date, or a cooldown Chris explicitly asked for.
 
-"Not urgent", "overnight", "whenever", "the worker can handle it", "it's evening", and
+"Not urgent", "overnight", "whenever", "the agent can handle it", "it's evening", and
 "Chris is busy today" all mean **NOW**. The scheduling system handles priority, not
 `start_at`. Only an explicit date ("do it Monday", "in a couple of weeks") sets a future
 date. A blocker gets documented in Next Action, never encoded as a fake future date.
@@ -63,15 +63,16 @@ changes. If you touched it, log it. If you made a choice, explain why. The next 
 
 ## Fresh Eyes Every Session
 
-You have no memory between sessions. Re-read the project note. Don't assume the last worker
+You have no memory between sessions. Re-read the project note. Don't assume the last session
 got it right, and don't assume the exec summary is current. The latest decision trail entry
 is the source of truth, not the summary.
 
-## One Step Then Exit
+## Work Until Blocked
 
-Bounded work. Do the next concrete thing and hand off cleanly. Update the note so the next
-session can pick up cold. For the vault worker that means 10–15 minutes, not an hour; a
-delegated build under `/delegate` has its own cap.
+Project sessions follow the playbook until blocked on Chris or someone else, then save
+what they learned and did in the project note and decision trail. See
+`~/code/review-board/docs/project-sessions-design.md`. A delegated build follows its brief
+under `/delegate`.
 
 ## Push Forward When Blocked
 

@@ -2,7 +2,7 @@
  * Protected Paths Extension
  *
  * Prompts before write/edit to protected paths in interactive mode.
- * Blocks outright in non-interactive mode (worker, cron, etc.).
+ * Blocks outright in non-interactive mode (project sessions, cron, etc.).
  * Reference sources have a stricter rule: agents may inspect and update
  * metadata, but only save-article.sh may create or overwrite source files.
  */

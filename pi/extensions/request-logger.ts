@@ -15,9 +15,6 @@
  * The payload value is whatever the provider was about to POST — for the
  * OpenAI-completions providers (DeepSeek/OpenRouter), this is the full
  * `params` object with `model`, `messages`, `tools`, `stream`, etc.
- *
- * Pair with `~/.claude/skills/worker/scripts/request-diff.py` to compute
- * the prefix-divergence point between two requests.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

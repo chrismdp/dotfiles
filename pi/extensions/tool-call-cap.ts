@@ -5,9 +5,8 @@
  * triage run made 6,148 bash calls in one session (2026-05-28) costing $3.59;
  * this caps that class of failure.
  *
- * Opt-in via env var so it does NOT affect the worker (which legitimately runs
- * long). Set PI_MAX_TOOL_CALLS=<N> in the invocation you want capped — the
- * inbox-watcher sets it; worker/dream/vcp leave it unset and are unaffected.
+ * Opt-in via env var. Set PI_MAX_TOOL_CALLS=<N> in the invocation you want
+ * capped. Invocations without it are unaffected.
  *
  * Behaviour: once the run exceeds N tool calls, every further tool call is
  * blocked with an instruction to stop and exit. The model wraps up cleanly

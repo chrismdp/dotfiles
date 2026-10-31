@@ -3,7 +3,7 @@
  *
  * Logs one JSONL line per *provider API call* capturing model, provider, token
  * usage and cost — so every pi-driven agent (em, richard, penelope, bella,
- * worker, dream, vcp, the inbox triage runs, …) has a durable, queryable
+ * project sessions, dream, vcp, the inbox triage runs, …) has a durable, queryable
  * cost+model record.
  *
  * Requested by Chris 2026-06-03: "all agents should actually track cost along

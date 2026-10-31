@@ -39,15 +39,15 @@ SYSTEMD USER SERVICES
 
 <pre>
   mkdir -p ~/.config/systemd/user
-  for svc in claude-worker@.service voice-inbox.service; do
-    ln -sf ~/code/dotfiles/systemd/user/$svc ~/.config/systemd/user/$svc
-  done
+  ln -sf ~/code/dotfiles/systemd/user/voice-inbox.service ~/.config/systemd/user/voice-inbox.service
   systemctl --user daemon-reload
-  systemctl --user enable --now claude-worker@1
   systemctl --user enable --now voice-inbox
 </pre>
 
 `voice-inbox.service` reads its config from `~/code/voice-inbox/.env` (not tracked).
+
+Project sessions run vault projects. See
+`~/code/review-board/docs/project-sessions-design.md` for their design and triggers.
 
 SYSTEMD SYSTEM SERVICES
 -----------------------
@@ -105,7 +105,7 @@ What's in each file:
 - **statusline.sh** - Custom status bar with context window, API usage bars,
   vault sync status (✓↑ = committed/synced, ♡ = heartbeat), and rate limit info.
   Reads runtime credentials from `~/.claude/.credentials.json` (not tracked).
-- **systemd/user/** - User systemd unit files (claude-worker template, voice-inbox).
+- **systemd/user/** - User systemd unit files (voice-inbox).
 - **systemd/system/** - System-level systemd unit files (claude-inbox-watcher, telegram-webhook).
 - **nginx/sites-available/** - Nginx vhost config for `vps.chrismdp.com` (telegram-webhook + review board + voice inbox).
 - **build-crontab.sh** - Assembles and installs the VPS crontab from `~/vault/crontab.vps` (base fragment) plus every `~/vault/agents/<name>/crontab` (per-agent fragments) — both live in the private vault repo, not here. Never `crontab ~/vault/crontab.vps` directly, it drops every agent's cron.
