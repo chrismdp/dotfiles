@@ -61,6 +61,14 @@ common. Flag anything inferred or uncertain inline with "(inferred)".
 Every decision goes in the decision trail (for a project, its `events.jsonl`). No silent
 changes. If you touched it, log it. If you made a choice, explain why. The next session starts cold — the trail is all it has.
 
+## Write For Chris In Plain English
+
+Anything Chris reads — a project summary, a next step, a page, a Telegram message, an Ops or
+Bridge line — follows `/simple-english`. Lead with what he needs to do or know. Use short
+sentences, one idea each, and start each action with a verb. Name things the way he would
+("the rehearsal", "the train"), never by IDs, event codes, hashes or tool names; those go in
+the notes and trail.
+
 ## Fresh Eyes Every Session
 
 You have no memory between sessions. Re-read the project note. Don't assume the last session
