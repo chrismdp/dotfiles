@@ -52,7 +52,6 @@
       "/tmp"
     ]
   },
-  "model": "opus",
   "hooks": {
     "SessionEnd": [
       {
@@ -80,6 +79,16 @@
           {
             "type": "command",
             "command": "bash ~/code/dotfiles/bin/tmux-attention pre-tool"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cp/code/dotfiles/bin/block-handrolled-arm-wait",
+            "timeout": 10
           }
         ]
       }

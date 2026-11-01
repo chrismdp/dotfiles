@@ -1,0 +1,20 @@
+#!/bin/bash
+# PreToolUse(Bash): refuse the two ways worker waits have silently failed.
+# 1. pgrep/pkill -f on a worktree or arm name: the watcher's own command line
+#    matches, so the arm reads as running forever (2026-08-04 twice, 2026-11-01).
+# 2. codex_arm.sh / shadow_arm.sh detached (nohup, setsid, &): no exit
+#    notification ever reaches the session.
+cmd=$(jq -r '.tool_input.command // empty')
+[ -z "$cmd" ] && exit 0
+deny() {
+  jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+  exit 0
+}
+fix='Launch the arm script itself as the whole Bash command with run_in_background: true; you are notified when it exits. To wait on an arm that is already running, run (in the background) `source ~/.claude/skills/delegate/scripts/arm_common.sh; arm_wait <branch>`, which waits on its completion sentinel in .claude/arm-status/.'
+if printf '%s' "$cmd" | grep -Eq '\b(pgrep|pkill)\b[^|;&]*-[a-zA-Z]*f[^|;&]*(worktrees|codex-|shadow-|_arm)'; then
+  deny "Blocked: pgrep/pkill -f on a worker name matches this watcher's own command line, so the worker looks alive forever. $fix"
+fi
+if printf '%s' "$cmd" | grep -Eq '(codex_arm|shadow_arm)\.sh' && printf '%s' "$cmd" | grep -Eq '(\bnohup\b|\bsetsid\b|&[[:space:]]*\)|&[[:space:]]*$|&[[:space:]]*;)'; then
+  deny "Blocked: a detached arm launch never sends an exit notification. $fix"
+fi
+exit 0
