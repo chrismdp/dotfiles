@@ -40,7 +40,8 @@
 
 How Chris wants software built, on every codebase. Load `/engineering` for the full doctrine, rationale, and evidence.
 
-- **Test-first TDD, literally — red, green, refactor.** No production code without a failing test that asked for it. Writing tests after the implementation is not TDD — stop and restart that slice test-first.
+- **Test-first TDD, literally — red, green, refactor — for business logic.** No logic change without a failing test that asked for it. Writing tests after the implementation is not TDD — stop and restart that slice test-first.
+- **Test business logic, not views** (Chris, 2026-11-02). Tests cover data, state, persistence, security boundaries, integrations and API effects. UI, layout, labels, copy, CSS and performance get no tests, so a view-only change ships without one. Browser end-to-end tests are a handful of happy paths through the core journeys only, never one per feature.
 - **Outside-in / BDD.** Start from observable behaviour at the boundary and drive inward. Tests assert behaviour, not internal structure — they must survive a refactor.
 - **Size the unit of work right, then build it WHOLE.** A ticket reaches main complete and coherent, never leaving the product worse than before. A ticket needing internal "slice 1 / slice 2" phases was mis-sized. **When in doubt, err BIGGER** — the test is "would one briefed agent do these in one run, against one verification?"
 - **Keep it simple until it is a problem** (Chris, 2026-09-03). Ship the correct minimum. Do not bundle a speculative guard (a cap, a limit, a de-ranking, a fallback) against a problem nobody has seen, and do not offer one as part of a proposal. Separate the two halves before proposing: a fix for something MEASURABLY wrong ships now, a guard against something imagined waits until it happens. Adding the guard later is cheap; the wrong guard is a permanent unexplained rule.
