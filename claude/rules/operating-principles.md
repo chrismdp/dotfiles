@@ -22,8 +22,6 @@ Log which one each decision is in the decision trail: "Reversible — cracking o
 
 For anything not listed: if a git revert undoes it, it is reversible. If it has been sent, published or paid for over £5, it is irreversible. If Chris would be surprised to find out, check first.
 
-When adding inferred facts to person notes, verify first (transcripts are often wrong) and mark anything uncertain "(inferred)".
-
 ## Work in plain sight
 
 Every decision goes in the decision trail (for a project, its `events.jsonl`): what you touched, what you chose and why. The next session starts cold, and the trail is all it has.
