@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Pull finalised Wispr Flow meeting transcripts into the vault.
 
-Sibling of sync-drive-transcripts.sh: download only. Once a file lands in
-vault/transcripts/, vault-sync.sh commits it and process-new-transcripts.sh
-fires Em's routing reflex, which fans it out to the agents.
+Every saved file enters the shared transcript input for a word check on Bridge,
+then its open projects. The sync observer uses the same path identity.
 
 Wispr has no REST endpoint for recorded meetings — the retrieval surface is
 its MCP server. This talks to it directly over streamable HTTP with its own
@@ -528,6 +527,11 @@ def sync():
     return written
 
 
+def queue_transcript(name):
+    subprocess.run(['bash', str(Path.home()/'vault/scripts/queue-transcript.sh'),
+                    'transcripts/'+name, 'wispr'], check=True, timeout=60)
+
+
 def _sync_once():
     TRANSCRIPTS.mkdir(parents=True, exist_ok=True)
     now = datetime.now(timezone.utc)
@@ -552,6 +556,7 @@ def _sync_once():
         duplicate = existing_match(meeting, existing)
         if duplicate:
             log(f"SKIP {meeting['title']!r} — vault already has {duplicate}")
+            queue_transcript(duplicate)
             record_state(STATE_FILE, meeting["id"])
             continue
 
@@ -563,11 +568,12 @@ def _sync_once():
         name = filename_for(meeting)
         (TRANSCRIPTS / name).write_text(render(detail))
         existing.append(name)
+        queue_transcript(name)
         record_state(STATE_FILE, meeting["id"])
         log(f"Downloaded: {name}")
         written += 1
 
-    log(f"Downloaded {written} new transcript(s) — vault-sync will commit and route"
+    log(f"Downloaded {written} new transcript(s) — queued for word checks and projects"
         if written else "OK")
     return written
 

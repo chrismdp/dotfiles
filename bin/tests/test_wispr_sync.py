@@ -425,3 +425,23 @@ class TestAlertAdvice:
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
+
+
+def test_wispr_download_and_duplicate_queue_same_path_before_recording_seen(tmp_path,monkeypatch):
+    monkeypatch.setattr(wispr_sync,'TRANSCRIPTS',tmp_path/'transcripts')
+    monkeypatch.setattr(wispr_sync,'STATE_FILE',tmp_path/'state')
+    monkeypatch.setattr(wispr_sync,'log',lambda *a:None)
+    monkeypatch.setattr(wispr_sync,'access_token',lambda:'fake')
+    class Mcp(_StubMcp):
+        def call(self,tool,args):
+            return {'meetings':[meeting()]}
+    monkeypatch.setattr(wispr_sync,'Mcp',Mcp)
+    monkeypatch.setattr(wispr_sync,'fetch_transcript',lambda *a:{**meeting(),'transcript':'the meeting words'})
+    calls=[]
+    monkeypatch.setattr(wispr_sync.subprocess,'run',lambda argv,**kw:calls.append(argv))
+    assert wispr_sync._sync_once() == 1
+    assert any('queue-transcript.sh' in str(arg) for arg in calls[0])
+    assert calls[0][-1] == 'wispr'
+    (tmp_path/'state').unlink()
+    wispr_sync._sync_once()
+    assert calls[0] == calls[1]
