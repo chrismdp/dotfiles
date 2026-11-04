@@ -32,6 +32,7 @@
 - Never include client names or identifiable client data in public content (blog, LinkedIn, newsletters). Name a client only when a published case study does.
 - Never invent questions, anecdotes or audience reactions. Use real data or ask Chris; if there is no evidence, say so.
 - Git: never force-push without checking merge status. No `Co-Authored-By: Claude` trailer. Never leave "retired" or "deprecated" tombstone comments in code, crontabs or config; git history is the record.
+- Write briefs and direction to workers as positive instructions: say what to build and how. Leave rejected alternatives out; naming them is a tombstone.
 
 ## Engineering
 
