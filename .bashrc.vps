@@ -118,8 +118,9 @@ fi
 [[ "$TERM" == "xterm-ghostty" ]] && export TERM=xterm-256color
 export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
-# Load secret environment variables
-if [ -f ~/.secret_env ]; then
+# Load secret environment variables, unless a parent shell already did.
+# Run `. ~/.secret_env` by hand to pick up a rotated or new secret.
+if [ -f ~/.secret_env ] && [ -z "${YNAB_API_KEY:-}" ]; then
     . ~/.secret_env
 fi
 
