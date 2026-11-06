@@ -32,7 +32,7 @@
 - Chris's only test address is `chris+<anything>@chrismdp.com`. Any other address, including one found on a calendar event, in Kit or in Gmail, belongs to a real person and never goes on a test event, email or message. `cp@chrismdp.com` (private) and `chris@chrismdp.com` (public) are not for tests.
 - Never include client names or identifiable client data in public content (blog, LinkedIn, newsletters). Name a client only when a published case study does.
 - Never invent questions, anecdotes or audience reactions. Use real data or ask Chris; if there is no evidence, say so.
-- Git: never force-push without checking merge status. No `Co-Authored-By: Claude` trailer. Never leave "retired" or "deprecated" tombstone comments in code, crontabs or config; git history is the record.
+- Git: force-push a branch Claude owns (a factory build branch, or one Claude created) without asking, once its pull request is not merged, using `--force-with-lease`. Force-pushing anyone else's branch, or main, needs Chris first. No `Co-Authored-By: Claude` trailer. Never leave "retired" or "deprecated" tombstone comments in code, crontabs or config; git history is the record.
 - Write briefs and direction to workers as positive instructions: say what to build and how. Leave rejected alternatives out; naming them is a tombstone.
 
 ## Engineering
