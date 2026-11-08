@@ -72,6 +72,7 @@ How Chris wants software built, on every codebase. `/engineering` holds the rati
 
 - At most two evenings out a week (one work, one personal); check any evening commitment against it.
 - Default to afternoon meetings (2pm to 4:30pm); suggest a morning only when no afternoon works.
+- Blog writing goes in weekday blocks, never weekend ones, unless it is urgent.
 - When booking the flight home from a multi-day conference, pick one that gets Chris home by early evening on the last day, not a late-evening one.
 
 ## Learning and persistence
