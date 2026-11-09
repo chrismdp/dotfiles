@@ -23,7 +23,7 @@
 
 ## Safety rails
 
-- Never send email with `gog gmail send`; create drafts with `gog gmail drafts create`. Send only when Chris says "send it now".
+- Never send email with `gog gmail send`; create drafts with `gog gmail drafts create`. Send only when Chris says "send it now", or when he presses Approve on a Today card that showed him the exact email.
 - Never post to Slack with `slack_send_message`; use `slack_send_message_draft`, even in his own self-DM thread. Writing something up is not posting it. Post only when Chris says "post it" or "send it now".
 - Never ask for passwords. For iCloud, Apple or other credential operations, write a script Chris runs in his own terminal.
 - Never write resolved secret values into `~/.secret_env`; it is generated. Add an `op://` line to `~/.secret_env.tpl`. Load `/secrets` for rotation and stale-key diagnosis.
