@@ -87,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/home/cp/code/dotfiles/bin/block-handrolled-arm-wait",
+            "command": "~/code/dotfiles/bin/block-handrolled-arm-wait",
             "timeout": 10
           }
         ]
