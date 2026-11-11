@@ -2,7 +2,7 @@
 	rebase = true
 [user]
 	name = Chris Parsons
-	email = cp@cherrypick.co
+	email = chris@chrismdp.com
 [alias]
 	s      = status
 	fp     = push origin HEAD --force-with-lease
@@ -22,7 +22,7 @@
 [rebase]
 	autosquash = true
 [core]
-	excludesfile = /Users/chris/.gitignore
+	excludesfile = ~/.gitignore
 [fetch]
 	prune = true
 [init]
