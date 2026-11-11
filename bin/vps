@@ -1,0 +1,24 @@
+#!/bin/bash
+# SSH to the VPS (Host vps in ~/.ssh/config) with port forwarding
+# Usage: vps 4001:4000 8674 42923
+#   4001:4000  → -L 4001:127.0.0.1:4000
+#   8674       → -L 8674:127.0.0.1:8674
+
+if [ $# -eq 0 ]; then
+  ssh vps
+  exit
+fi
+
+args=()
+for port in "$@"; do
+  if [[ "$port" == *:* ]]; then
+    local_port="${port%%:*}"
+    remote_port="${port##*:}"
+  else
+    local_port="$port"
+    remote_port="$port"
+  fi
+  args+=(-L "${local_port}:127.0.0.1:${remote_port}")
+done
+
+ssh "${args[@]}" vps
