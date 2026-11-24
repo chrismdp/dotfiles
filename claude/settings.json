@@ -173,12 +173,13 @@
     "command": "/bin/bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
-    "lockbox@chrismdp": false,
     "ruby-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "stripe@claude-plugins-official": false,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "cp@synced": false,
+    "chrismdp@synced": false
   },
   "effortLevel": "high",
   "promptSuggestionEnabled": false,
