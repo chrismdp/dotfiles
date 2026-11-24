@@ -177,9 +177,7 @@
     "gopls-lsp@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "stripe@claude-plugins-official": false,
-    "skill-creator@claude-plugins-official": true,
-    "cp@synced": false,
-    "chrismdp@synced": false
+    "skill-creator@claude-plugins-official": true
   },
   "effortLevel": "high",
   "promptSuggestionEnabled": false,
